@@ -1,0 +1,33 @@
+---
+source: rustainers/src/container/process.rs
+expression: data
+---
+[
+    ContainerProcess {
+        id: ContainerId(
+            "efb522e2ce2be08d3ff96685c07dd6521c27ddb2aac2c33761f292a74dd872d0",
+        ),
+        names: Name(
+            "redpanda-console",
+        ),
+        state: Exited,
+    },
+    ContainerProcess {
+        id: ContainerId(
+            "58e4e6921c09b9ad17e62ae6fa92455bbe69eca31782b7b848b3972b86af1eb7",
+        ),
+        names: Name(
+            "redpanda-0",
+        ),
+        state: Exited,
+    },
+    ContainerProcess {
+        id: ContainerId(
+            "4133b65cffa94eb08caefba96e8182e119efccd9655d3230365bc73b0a6e109e",
+        ),
+        names: Name(
+            "trusting_antonelli",
+        ),
+        state: Exited,
+    },
+]

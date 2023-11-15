@@ -1,0 +1,23 @@
+{
+  "OciVersion": "1.1.0-rc.3",
+  "Status": "running",
+  "Running": true,
+  "Paused": false,
+  "Restarting": false,
+  "OOMKilled": false,
+  "Dead": false,
+  "Pid": 395624,
+  "ConmonPid": 395622,
+  "ExitCode": 0,
+  "Error": "",
+  "StartedAt": "2023-08-25T12:47:17.861262357+02:00",
+  "FinishedAt": "0001-01-01T00:00:00Z",
+  "Health": {
+    "Status": "starting",
+    "FailingStreak": 0,
+    "Log": null
+  },
+  "CgroupPath": "/user.slice/user-393534092.slice/user@393534092.service/user.slice/libpod-fcded727eee4d15ecccfcecdb656b131a75f2f2c37cb06a7b71a3b193ebb3aad.scope",
+  "CheckpointedAt": "0001-01-01T00:00:00Z",
+  "RestoredAt": "0001-01-01T00:00:00Z"
+}

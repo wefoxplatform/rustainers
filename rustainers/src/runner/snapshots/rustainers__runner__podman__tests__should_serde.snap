@@ -1,0 +1,14 @@
+---
+source: rustainers/src/runner/podman.rs
+expression: result
+---
+{
+  "Client": {
+    "APIVersion": "4.4.4",
+    "Version": "4.4.4"
+  },
+  "Server": {
+    "APIVersion": "4.4.2",
+    "Version": "4.4.2"
+  }
+}

@@ -1,0 +1,13 @@
+---
+source: rustainers/src/runner/docker.rs
+expression: version
+---
+DockerComposeVersion {
+    version: Version {
+        major: 2,
+        minor: 20,
+        patch: Some(
+            2,
+        ),
+    },
+}

@@ -1,0 +1,19 @@
+{
+  "Client": {
+    "Platform": {
+      "Name": ""
+    },
+    "CloudIntegration": "v1.0.23",
+    "Version": "20.10.14",
+    "ApiVersion": "1.41",
+    "DefaultAPIVersion": "1.41",
+    "GitCommit": "a224086",
+    "GoVersion": "go1.16.15",
+    "Os": "darwin",
+    "Arch": "arm64",
+    "BuildTime": "Thu Mar 24 01:49:20 2022",
+    "Context": "default",
+    "Experimental": true
+  },
+  "Server": null
+}

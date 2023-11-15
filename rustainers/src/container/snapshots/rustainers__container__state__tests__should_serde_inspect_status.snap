@@ -1,0 +1,12 @@
+---
+source: rustainers/src/container/state.rs
+expression: result
+---
+ContainerState {
+    status: Running,
+    health: ContainerFullStateHealth {
+        status: Starting,
+        failing_streak: 0,
+        log: None,
+    },
+}
