@@ -1,0 +1,7 @@
+[package]
+name = "rustainers"
+version = "0.0.0-reserved"
+edition = "2021"
+
+
+[dependencies]
