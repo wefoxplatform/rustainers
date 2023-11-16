@@ -6,7 +6,7 @@ use super::ImageNameError;
 
 /// An image name.
 ///
-/// It contains the name, and optionaly a tag or a digest.
+/// It contains the name, and optionally a tag or a digest.
 ///
 /// # Example
 ///

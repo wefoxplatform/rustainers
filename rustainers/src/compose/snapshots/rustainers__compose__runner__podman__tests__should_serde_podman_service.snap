@@ -1,0 +1,54 @@
+---
+source: rustainers/src/compose/runner.rs
+expression: services
+---
+[
+  {
+    "Id": "2307493ebc7c2cf221e339ecc23c0d7c53065f0e01bc374cf1af13876062aee3",
+    "Names": [
+      "tc-kafka"
+    ],
+    "Labels": {
+      "com.docker.compose.container-number": "1",
+      "com.docker.compose.project": "kafka_schema_registry",
+      "com.docker.compose.project.config_files": "docker-compose.yaml",
+      "com.docker.compose.project.working_dir": "/Users/igor.laborie/Documents/Workspaces/Wefox/shared/wefox-ai-wai-rust/wai-testcontainers/src/compose/kafka_schema_registry",
+      "com.docker.compose.service": "kafka"
+    },
+    "State": "running",
+    "Health": null,
+    "ExitCode": 0
+  },
+  {
+    "Id": "e383b5e5d80e2f7ab640940e14221a66d07914cad2d1189076efc43ea03609b7",
+    "Names": [
+      "tc-schema-registry"
+    ],
+    "Labels": {
+      "com.docker.compose.container-number": "1",
+      "com.docker.compose.project": "kafka_schema_registry",
+      "com.docker.compose.project.config_files": "docker-compose.yaml",
+      "com.docker.compose.project.working_dir": "/Users/igor.laborie/Documents/Workspaces/Wefox/shared/wefox-ai-wai-rust/wai-testcontainers/src/compose/kafka_schema_registry",
+      "com.docker.compose.service": "schema-registry"
+    },
+    "State": "running",
+    "Health": null,
+    "ExitCode": 0
+  },
+  {
+    "Id": "93b68542fcc252e3734c4d28a028c41240915b062b4ba1fc804e960486540c79",
+    "Names": [
+      "tc-kafdrop"
+    ],
+    "Labels": {
+      "com.docker.compose.container-number": "1",
+      "com.docker.compose.project": "kafka_schema_registry",
+      "com.docker.compose.project.config_files": "docker-compose.yaml",
+      "com.docker.compose.project.working_dir": "/Users/igor.laborie/Documents/Workspaces/Wefox/shared/wefox-ai-wai-rust/wai-testcontainers/src/compose/kafka_schema_registry",
+      "com.docker.compose.service": "kafdrop"
+    },
+    "State": "running",
+    "Health": null,
+    "ExitCode": 0
+  }
+]

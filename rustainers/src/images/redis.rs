@@ -1,10 +1,8 @@
-use std::mem;
-use std::sync::Arc;
 use std::time::Duration;
 
 use crate::{
     ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
-    RunnableContainerBuilder, SharedExposedPort, ToRunnableContainer,
+    RunnableContainerBuilder, ToRunnableContainer,
 };
 
 const REDIS_IMAGE: &ImageName = &ImageName::new("redis");
@@ -34,7 +32,7 @@ const PORT: Port = Port(6379);
 #[derive(Debug)]
 pub struct Redis {
     image: ImageName,
-    port: SharedExposedPort,
+    port: ExposedPort,
 }
 
 impl Redis {
@@ -62,9 +60,7 @@ impl Redis {
     ///
     /// Could fail if the port is not bind
     pub async fn endpoint(&self) -> Result<String, PortError> {
-        let p = self.port.lock().await;
-        let port = p.host_port()?;
-        mem::drop(p);
+        let port = self.port.host_port().await?;
         let url = format!("redis://localhost:{port}");
 
         Ok(url)
@@ -75,7 +71,7 @@ impl Default for Redis {
     fn default() -> Self {
         Self {
             image: REDIS_IMAGE.clone(),
-            port: ExposedPort::shared(PORT),
+            port: ExposedPort::new(PORT),
         }
     }
 }
@@ -91,7 +87,7 @@ impl ToRunnableContainer for Redis {
                     .with_interval(Duration::from_millis(96))
                     .build(),
             )
-            .with_port_mappings([Arc::clone(&self.port)])
+            .with_port_mappings([self.port.clone()])
             .build()
     }
 }

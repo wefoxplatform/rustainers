@@ -29,3 +29,6 @@ pub mod runner;
 
 /// Provided images like postgres, redis, ...
 pub mod images;
+
+/// Provide support of compose
+pub mod compose;

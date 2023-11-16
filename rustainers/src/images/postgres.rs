@@ -1,10 +1,8 @@
-use std::mem;
-use std::sync::Arc;
 use std::time::Duration;
 
 use crate::{
     ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
-    RunnableContainerBuilder, SharedExposedPort, ToRunnableContainer,
+    RunnableContainerBuilder, ToRunnableContainer,
 };
 
 const POSTGRES_IMAGE: &ImageName = &ImageName::new("postgres");
@@ -48,7 +46,7 @@ pub struct Postgres {
     user: String,
     password: String,
     db: String,
-    port: SharedExposedPort,
+    port: ExposedPort,
 }
 
 impl Postgres {
@@ -162,9 +160,7 @@ impl Postgres {
     pub async fn url(&self) -> Result<String, PortError> {
         let user = &self.user;
         let password = &self.password;
-        let p = self.port.lock().await;
-        let port = p.host_port()?;
-        mem::drop(p);
+        let port = self.port.host_port().await?;
         let database = &self.db;
         let url = format!("postgresql://{user}:{password}@localhost:{port}/{database}");
         Ok(url)
@@ -178,9 +174,7 @@ impl Postgres {
     pub async fn config(&self) -> Result<String, PortError> {
         let user = &self.user;
         let password = &self.password;
-        let p = self.port.lock().await;
-        let port = p.host_port()?;
-        mem::drop(p);
+        let port = self.port.host_port().await?;
         let database = &self.db;
         let config =
             format!("host=localhost user={user} password={password} port={port} dbname={database}");
@@ -195,7 +189,7 @@ impl Default for Postgres {
             user: String::from(POSTGRES_USER),
             password: String::from(POSTGRES_PASSWORD),
             db: String::from(POSTGRES_DATABASE),
-            port: ExposedPort::shared(PORT),
+            port: ExposedPort::new(PORT),
         }
     }
 }
@@ -217,7 +211,7 @@ impl ToRunnableContainer for Postgres {
                 ("POSTGRES_PASSWORD", &self.password),
                 ("POSTGRES_DB", &self.db),
             ])
-            .with_port_mappings([Arc::clone(&self.port)])
+            .with_port_mappings([self.port.clone()])
             .build()
     }
 }

@@ -1,11 +1,9 @@
-use std::mem;
-use std::sync::Arc;
 use std::time::Duration;
 
 use crate::runner::RunnerError;
 use crate::{
     Container, ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
-    RunnableContainerBuilder, SharedExposedPort, ToRunnableContainer,
+    RunnableContainerBuilder, ToRunnableContainer,
 };
 
 const DATA: &str = "/data";
@@ -40,8 +38,8 @@ const CONSOLE_PORT: Port = Port(9001);
 #[derive(Debug)]
 pub struct Minio {
     image: ImageName,
-    port: SharedExposedPort,
-    console_port: SharedExposedPort,
+    port: ExposedPort,
+    console_port: ExposedPort,
 }
 
 impl Minio {
@@ -103,9 +101,7 @@ impl Minio {
     ///
     /// Could fail if the port is not bind
     pub async fn endpoint(&self) -> Result<String, PortError> {
-        let p = self.port.lock().await;
-        let port = p.host_port()?;
-        mem::drop(p);
+        let port = self.port.host_port().await?;
         let url = format!("http://localhost:{port}");
 
         Ok(url)
@@ -117,9 +113,7 @@ impl Minio {
     ///
     /// Could fail if the console port is not bind
     pub async fn console_endpoint(&self) -> Result<String, PortError> {
-        let p = self.console_port.lock().await;
-        let port = p.host_port()?;
-        mem::drop(p);
+        let port = self.console_port.host_port().await?;
         let url = format!("http://localhost:{port}");
 
         Ok(url)
@@ -147,8 +141,8 @@ impl Default for Minio {
     fn default() -> Self {
         Minio {
             image: MINIO_IMAGE.clone(),
-            port: ExposedPort::shared(PORT),
-            console_port: ExposedPort::shared(CONSOLE_PORT),
+            port: ExposedPort::new(PORT),
+            console_port: ExposedPort::new(CONSOLE_PORT),
         }
     }
 }
@@ -164,7 +158,7 @@ impl ToRunnableContainer for Minio {
                     .build()
             })
             .with_command(["server", DATA])
-            .with_port_mappings([Arc::clone(&self.port), Arc::clone(&self.console_port)])
+            .with_port_mappings([self.port.clone(), self.console_port.clone()])
             .build()
     }
 }

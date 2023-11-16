@@ -4,9 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Bug Fixes
+
+- Fix port binding
+
 ### Features
 
 - Initial contribution
+- Initial contribution
+- Add compose support
 
 ### Miscellaneous Tasks
 

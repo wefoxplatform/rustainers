@@ -3,9 +3,30 @@ use std::fmt::{self, Display};
 use indexmap::IndexMap;
 use typed_builder::TypedBuilder;
 
-use crate::{ImageReference, SharedExposedPort, WaitStrategy};
+use crate::{ExposedPort, ImageReference, WaitStrategy};
 
 /// Contains configuration require to create and run a container
+///
+/// # Example
+///
+/// ```rust
+/// # use std::time::Duration;
+/// # use rustainers::{RunnableContainer, HealthCheck, ExposedPort, ImageName};
+/// let runnable = RunnableContainer::builder()
+///     .with_image(ImageName::new("redis"))
+///     .with_wait_strategy(
+///         HealthCheck::builder()
+///             .with_command("redis-cli --raw incr ping")
+///             .with_start_period(Duration::from_millis(96))
+///             .with_interval(Duration::from_millis(96))
+///             .build(),
+///     )
+///     .with_port_mappings([ExposedPort::new(6379)])
+///     .build();
+/// ```
+///
+/// See [existings images](https://github.com/wefoxplatform/rustainers/tree/main/rustainers/src/images/)
+/// for real usages.
 #[derive(Debug, TypedBuilder)]
 #[builder(field_defaults(setter(prefix = "with_")))]
 #[non_exhaustive]
@@ -22,7 +43,7 @@ pub struct RunnableContainer {
     #[builder(default, setter(transform = |args: impl IntoIterator<Item = impl Into<String>>| args.into_iter().map(Into::into).collect()))]
     pub(crate) command: Vec<String>,
 
-    /// The environnement variables
+    /// The environment variables
     #[builder(default, setter(transform = |args: impl IntoIterator<Item = (impl Into<String>, impl Into<String>)>| args.into_iter().map(|(k,v)| (k.into(), v.into())).collect()))]
     pub(crate) env: IndexMap<String, String>,
 
@@ -31,8 +52,8 @@ pub struct RunnableContainer {
     pub(crate) wait_strategy: WaitStrategy,
 
     /// The ports mapping
-    #[builder(default, setter(transform = |args: impl IntoIterator<Item = SharedExposedPort>| args.into_iter().collect()))]
-    pub(crate) port_mappings: Vec<SharedExposedPort>,
+    #[builder(default, setter(transform = |args: impl IntoIterator<Item = ExposedPort>| args.into_iter().collect()))]
+    pub(crate) port_mappings: Vec<ExposedPort>,
     // TODO networks
     // TODO volumes
     // TODO entrypoint
@@ -42,10 +63,7 @@ impl RunnableContainer {
     /// Build the descriptor of an image (name + tag)
     #[must_use]
     pub fn descriptor(&self) -> String {
-        match &self.image {
-            ImageReference::Id(id) => id.to_string(),
-            ImageReference::Name(name) => name.to_string(),
-        }
+        self.image.to_string()
     }
 }
 

@@ -9,7 +9,7 @@ pub use self::exposed::*;
 
 /// A Port
 ///
-/// Example
+/// # Example
 ///
 /// You can create a port from an `u16`:
 ///

@@ -1,54 +1,57 @@
-use std::fmt::{self, Display};
 use std::str::FromStr;
 use std::sync::Arc;
 
 use tokio::sync::Mutex;
 
-use super::{Port, PortError};
+use tracing::debug;
 
-/// A shared exposed port (interior mutability)
-pub type SharedExposedPort = Arc<Mutex<ExposedPort>>;
+use super::{Port, PortError};
 
 /// Define an exposed port
 ///
+/// An exposed port has two parts: the container port (inside), and the host port (outside).
+/// To talk to the container you need to use the host port.
+///
 /// # Examples
 ///
-/// Create an exposed port targeting the container `80` port:
+/// You can omit the host port during construction, in that case, a default
+/// available port is chosen. For example, to create an exposed port
+/// targeting the container `80` port:
 ///
 /// ```rust
 /// # use rustainers::ExposedPort;
-/// let port_mapping = ExposedPort::shared(80);
+/// let port_mapping = ExposedPort::new(80);
 /// ```
 ///
-/// Create the exposed host port `8080` targeting the container `80` port:
+/// You can set the host port, but be careful it can fail it's already opened.
+/// For example, to create the exposed host port `8080`
+/// targeting the container `80` port:
 ///
 /// ```rust
 /// # use rustainers::ExposedPort;
 /// let port_mapping = ExposedPort::fixed(80, 8080);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone)]
 pub struct ExposedPort {
     pub(crate) container_port: Port,
-    pub(crate) host_port: Option<Port>,
+    pub(crate) host_port: Arc<Mutex<Option<Port>>>,
 }
 
 impl ExposedPort {
     /// Create an exposed port
-    pub fn shared(container_port: impl Into<Port>) -> SharedExposedPort {
-        let result = Self {
+    pub fn new(container_port: impl Into<Port>) -> ExposedPort {
+        Self {
             container_port: container_port.into(),
-            host_port: None,
-        };
-        Arc::new(Mutex::new(result))
+            host_port: Arc::default(),
+        }
     }
 
     /// Create an exposed port with a fixed host port
-    pub fn fixed(container_port: impl Into<Port>, host_port: impl Into<Port>) -> SharedExposedPort {
-        let result = Self {
+    pub fn fixed(container_port: impl Into<Port>, host_port: impl Into<Port>) -> ExposedPort {
+        Self {
             container_port: container_port.into(),
-            host_port: Some(host_port.into()),
-        };
-        Arc::new(Mutex::new(result))
+            host_port: Arc::new(Mutex::new(Some(host_port.into()))),
+        }
     }
 
     /// Get the bound port (host)
@@ -56,28 +59,30 @@ impl ExposedPort {
     /// # Errors
     ///
     /// Fail if the port is unbound
-    pub fn host_port(self) -> Result<Port, PortError> {
-        self.host_port.ok_or(PortError::PortNotBindYet)
+    pub async fn host_port(&self) -> Result<Port, PortError> {
+        let port = self.host_port.lock().await;
+        port.ok_or(PortError::PortNotBindYet(self.container_port))
     }
 
     /// Get the container port
     #[must_use]
-    pub fn container_port(self) -> Port {
+    pub fn container_port(&self) -> Port {
         self.container_port
     }
 
-    pub(crate) fn to_publish(self) -> String {
-        if let Some(host) = self.host_port {
+    pub(crate) async fn to_publish(&self) -> String {
+        let port = self.host_port.lock().await;
+        port.map_or(self.container_port.to_string(), |host| {
             format!("{host}:{}", self.container_port)
-        } else {
-            self.container_port.to_string()
-        }
+        })
     }
 
     /// Bind the host port (if it's not already bound)
-    pub(crate) fn bind_port(&mut self, host_port: Port) {
-        if self.host_port.is_none() {
-            self.host_port = Some(host_port);
+    pub(crate) async fn bind_port(&mut self, host_port: Port) {
+        let mut port = self.host_port.lock().await;
+        if port.is_none() {
+            *port = Some(host_port);
+            debug!(%host_port, container_port=%self.container_port, "bound port");
         }
     }
 }
@@ -97,19 +102,9 @@ impl FromStr for ExposedPort {
             .map_err(|_| PortError::InvalidPortMapping(s.to_string()))?;
 
         Ok(Self {
-            host_port: Some(host_port),
+            host_port: Arc::new(Mutex::new(Some(host_port))),
             container_port,
         })
-    }
-}
-
-impl Display for ExposedPort {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(port) = self.host_port {
-            write!(f, "{port} -> {}", self.container_port)
-        } else {
-            write!(f, "unbound ({})", self.container_port)
-        }
     }
 }
 
@@ -120,17 +115,12 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn should_parse_exposed_port() {
+    #[tokio::test]
+    async fn should_parse_exposed_port() {
         let s = "1234:80";
         let result = s.parse::<ExposedPort>().unwrap();
-        check!(
-            result
-                == ExposedPort {
-                    host_port: Some(Port::new(1234)),
-                    container_port: Port::new(80),
-                }
-        );
+        check!(result.container_port() == 80);
+        check!(result.host_port().await.unwrap() == 1234);
     }
 
     #[rstest::rstest]
@@ -150,19 +140,18 @@ mod tests {
     async fn should_bind_port() {
         const CONTAINER: u16 = 42;
         let host = 1324;
-        let exposed_port = ExposedPort::shared(CONTAINER);
-        let mut shared = exposed_port.lock().await;
+        let mut exposed_port = ExposedPort::new(CONTAINER);
 
         // should fail if no host
-        let result = shared.host_port();
+        let result = exposed_port.host_port().await;
         let_assert!(Err(_) = result);
 
         // bind the good port
-        shared.bind_port(Port(host));
-        check!(shared.host_port == Some(Port(host)));
+        exposed_port.bind_port(Port(host)).await;
+        check!(exposed_port.host_port().await.unwrap() == host);
 
         // should fail if no host
-        let result = shared.host_port();
+        let result = exposed_port.host_port().await;
         let_assert!(Ok(Port(h)) = result);
         check!(h == host);
     }
