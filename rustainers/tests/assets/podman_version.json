@@ -1,0 +1,22 @@
+{
+  "Client": {
+    "APIVersion": "4.4.4",
+    "Version": "4.4.4",
+    "GoVersion": "go1.20.2",
+    "GitCommit": "c8223435f49a860c8ac4281a85db39232745a7cb",
+    "BuiltTime": "Mon Mar 27 19:36:54 2023",
+    "Built": 1679938614,
+    "OsArch": "darwin/arm64",
+    "Os": "darwin"
+  },
+  "Server": {
+    "APIVersion": "4.4.2",
+    "Version": "4.4.2",
+    "GoVersion": "go1.19.6",
+    "GitCommit": "",
+    "BuiltTime": "Wed Mar  1 12:22:39 2023",
+    "Built": 1677669759,
+    "OsArch": "linux/arm64",
+    "Os": "linux"
+  }
+}

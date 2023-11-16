@@ -1,0 +1,128 @@
+[
+  {
+    "AutoRemove": false,
+    "Command": [
+      "/usr/local/bin/podman_hello_world"
+    ],
+    "CreatedAt": "16 hours ago",
+    "CIDFile": "",
+    "Exited": true,
+    "ExitedAt": 1698687451,
+    "ExitCode": 0,
+    "Id": "e160e315373d38ae1b9560b709de656d94cddad2a774b295030cd016b75ddbd7",
+    "Image": "quay.io/podman/hello:latest",
+    "ImageID": "1b10fa0fd8d184d9de22a553688af8f9f8adbabb11f5dfc15f1a0fdd21873db2",
+    "IsInfra": false,
+    "Labels": {
+      "artist": "Máirín Ní Ḋuḃṫaiġ, Twitter:@mairin",
+      "io.buildah.version": "1.31.2",
+      "maintainer": "Podman Maintainers"
+    },
+    "Mounts": [],
+    "Names": [
+      "optimistic_bardeen"
+    ],
+    "Namespaces": {},
+    "Networks": [
+      "podman"
+    ],
+    "Pid": 0,
+    "Pod": "",
+    "PodName": "",
+    "Ports": null,
+    "Restarts": 0,
+    "Size": null,
+    "StartedAt": 1698687451,
+    "State": "exited",
+    "Status": "Exited (0) 16 hours ago",
+    "Created": 1698687451
+  },
+  {
+    "AutoRemove": false,
+    "Command": [
+      "redis-server"
+    ],
+    "CreatedAt": "16 hours ago",
+    "CIDFile": "",
+    "Exited": true,
+    "ExitedAt": 1698687458,
+    "ExitCode": 0,
+    "Id": "da0b92141113225a661be45f691e27320077ac4fe749681ca2406846d705d346",
+    "Image": "docker.io/library/redis:latest",
+    "ImageID": "637ceb59b7a01df4466442fc5bb30bcf0ce3428289b00bbc02f62ddaa3e6bd8d",
+    "IsInfra": false,
+    "Labels": null,
+    "Mounts": [
+      "/data"
+    ],
+    "Names": [
+      "compassionate_kilby"
+    ],
+    "Namespaces": {},
+    "Networks": [
+      "podman"
+    ],
+    "Pid": 0,
+    "Pod": "",
+    "PodName": "",
+    "Ports": [
+      {
+        "host_ip": "",
+        "container_port": 6379,
+        "host_port": 34165,
+        "range": 1,
+        "protocol": "tcp"
+      }
+    ],
+    "Restarts": 0,
+    "Size": null,
+    "StartedAt": 1698687453,
+    "State": "exited",
+    "Status": "Exited (0) 16 hours ago (healthy)",
+    "Created": 1698687452
+  },
+  {
+    "AutoRemove": false,
+    "Command": [
+      "redis-server"
+    ],
+    "CreatedAt": "16 hours ago",
+    "CIDFile": "",
+    "Exited": true,
+    "ExitedAt": 1698687458,
+    "ExitCode": 0,
+    "Id": "409e83a1c1f9952e3ea51de48dd5829e711b645e240b2a843f77c0a27342398a",
+    "Image": "docker.io/library/redis:latest",
+    "ImageID": "637ceb59b7a01df4466442fc5bb30bcf0ce3428289b00bbc02f62ddaa3e6bd8d",
+    "IsInfra": false,
+    "Labels": null,
+    "Mounts": [
+      "/data"
+    ],
+    "Names": [
+      "nostalgic_blackburn"
+    ],
+    "Namespaces": {},
+    "Networks": [
+      "podman"
+    ],
+    "Pid": 0,
+    "Pod": "",
+    "PodName": "",
+    "Ports": [
+      {
+        "host_ip": "",
+        "container_port": 6379,
+        "host_port": 44931,
+        "range": 1,
+        "protocol": "tcp"
+      }
+    ],
+    "Restarts": 0,
+    "Size": null,
+    "StartedAt": 1698687456,
+    "State": "exited",
+    "Status": "Exited (0) 16 hours ago (healthy)",
+    "Created": 1698687455
+  }
+]

@@ -1,0 +1,13 @@
+---
+source: rustainers/src/runner/podman.rs
+expression: version
+---
+PodmanComposeVersion {
+    version: Version {
+        major: 1,
+        minor: 0,
+        patch: Some(
+            6,
+        ),
+    },
+}

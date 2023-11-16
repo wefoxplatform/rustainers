@@ -1,0 +1,39 @@
+---
+source: rustainers/src/container/process.rs
+expression: data
+---
+[
+    ContainerProcess {
+        id: ContainerId(
+            "e160e315373d38ae1b9560b709de656d94cddad2a774b295030cd016b75ddbd7",
+        ),
+        names: List(
+            [
+                "optimistic_bardeen",
+            ],
+        ),
+        state: Exited,
+    },
+    ContainerProcess {
+        id: ContainerId(
+            "da0b92141113225a661be45f691e27320077ac4fe749681ca2406846d705d346",
+        ),
+        names: List(
+            [
+                "compassionate_kilby",
+            ],
+        ),
+        state: Exited,
+    },
+    ContainerProcess {
+        id: ContainerId(
+            "409e83a1c1f9952e3ea51de48dd5829e711b645e240b2a843f77c0a27342398a",
+        ),
+        names: List(
+            [
+                "nostalgic_blackburn",
+            ],
+        ),
+        state: Exited,
+    },
+]

@@ -1,0 +1,15 @@
+---
+source: rustainers/src/runner/nerdctl.rs
+expression: version
+---
+NerdctlVersion {
+    client: NerdctlClientVersion {
+        version: Version {
+            major: 1,
+            minor: 5,
+            patch: Some(
+                0,
+            ),
+        },
+    },
+}

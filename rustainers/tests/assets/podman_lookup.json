@@ -1,0 +1,214 @@
+[
+  {
+    "AutoRemove": false,
+    "Command": [
+      "bash",
+      "-c",
+      "if [ ! -f /tmp/update_run.sh ]; then echo \"ERROR: Did you forget the update_run.sh file that came with this docker-compose.yml file?\" \u0026\u0026 exit 1 ; else /tmp/update_run.sh \u0026\u0026 /etc/confluent/docker/run ; fi"
+    ],
+    "CreatedAt": "20 minutes ago",
+    "CIDFile": "",
+    "Exited": false,
+    "ExitedAt": -62135596800,
+    "ExitCode": 0,
+    "Id": "2307493ebc7c2cf221e339ecc23c0d7c53065f0e01bc374cf1af13876062aee3",
+    "Image": "docker.io/confluentinc/cp-kafka:7.2.4",
+    "ImageID": "4c2157694fcfe64a69033d68c9e68b4581f3eda10774c1dcffa72e6655455527",
+    "IsInfra": false,
+    "Labels": {
+      "PODMAN_SYSTEMD_UNIT": "podman-compose@kafka_schema_registry.service",
+      "architecture": "aarch64",
+      "build-date": "2023-02-07T16:17:52",
+      "com.docker.compose.container-number": "1",
+      "com.docker.compose.project": "kafka_schema_registry",
+      "com.docker.compose.project.config_files": "docker-compose.yaml",
+      "com.docker.compose.project.working_dir": "/Users/igor.laborie/Documents/Workspaces/Wefox/shared/wefox-ai-wai-rust/wai-testcontainers/src/compose/kafka_schema_registry",
+      "com.docker.compose.service": "kafka",
+      "com.redhat.component": "ubi8-minimal-container",
+      "com.redhat.license_terms": "https://www.redhat.com/en/about/red-hat-end-user-license-agreements#UBI",
+      "description": "Common base image for Confluent's Docker images.",
+      "distribution-scope": "public",
+      "io.buildah.version": "1.27.3",
+      "io.confluent.docker": "true",
+      "io.confluent.docker.build.number": "2",
+      "io.confluent.docker.git.id": "e429d7d0",
+      "io.confluent.docker.git.repo": "confluentinc/kafka-images",
+      "io.k8s.description": "The Universal Base Image Minimal is a stripped down image that uses microdnf as a package manager. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.",
+      "io.k8s.display-name": "Red Hat Universal Base Image 8 Minimal",
+      "io.openshift.expose-services": "",
+      "io.openshift.tags": "minimal rhel8",
+      "io.podman.compose.config-hash": "0d314a7d44ef729913c68b99f213bc0e13bc08543b01438c061bae1f1c1b0fe0",
+      "io.podman.compose.project": "kafka_schema_registry",
+      "io.podman.compose.version": "1.0.6",
+      "maintainer": "partner-support@confluent.io",
+      "name": "cp-kafka",
+      "release": "7.2.4",
+      "summary": "Confluent platform Kafka.",
+      "url": "https://access.redhat.com/containers/#/registry.access.redhat.com/ubi8-minimal/images/8.7-1049.1675784874",
+      "vcs-ref": "146fdafc2595e26f5f9c1b9a2b3f36bbca8237e4",
+      "vcs-type": "git",
+      "vendor": "Confluent",
+      "version": "e429d7d0"
+    },
+    "Mounts": [
+      "/tmp/update_run.sh",
+      "/var/lib/kafka/data",
+      "/etc/kafka/secrets"
+    ],
+    "Names": [
+      "tc-kafka"
+    ],
+    "Namespaces": {},
+    "Networks": [
+      "kafka_schema_registry_default"
+    ],
+    "Pid": 2664,
+    "Pod": "",
+    "PodName": "",
+    "Ports": [
+      {
+        "host_ip": "",
+        "container_port": 9092,
+        "host_port": 9092,
+        "range": 1,
+        "protocol": "tcp"
+      }
+    ],
+    "Restarts": 0,
+    "Size": null,
+    "StartedAt": 1698253886,
+    "State": "running",
+    "Status": "Up 19 minutes",
+    "Created": 1698253843
+  },
+  {
+    "AutoRemove": false,
+    "Command": [
+      "/etc/confluent/docker/run"
+    ],
+    "CreatedAt": "19 minutes ago",
+    "CIDFile": "",
+    "Exited": false,
+    "ExitedAt": -62135596800,
+    "ExitCode": 0,
+    "Id": "e383b5e5d80e2f7ab640940e14221a66d07914cad2d1189076efc43ea03609b7",
+    "Image": "docker.io/confluentinc/cp-schema-registry:7.2.4",
+    "ImageID": "38d8762f72a8dc2092ae9c023cfa640e27a845e5e1bcb308d73b23e5321c0413",
+    "IsInfra": false,
+    "Labels": {
+      "PODMAN_SYSTEMD_UNIT": "podman-compose@kafka_schema_registry.service",
+      "architecture": "aarch64",
+      "build-date": "2023-02-07T16:17:52",
+      "com.docker.compose.container-number": "1",
+      "com.docker.compose.project": "kafka_schema_registry",
+      "com.docker.compose.project.config_files": "docker-compose.yaml",
+      "com.docker.compose.project.working_dir": "/Users/igor.laborie/Documents/Workspaces/Wefox/shared/wefox-ai-wai-rust/wai-testcontainers/src/compose/kafka_schema_registry",
+      "com.docker.compose.service": "schema-registry",
+      "com.redhat.component": "ubi8-minimal-container",
+      "com.redhat.license_terms": "https://www.redhat.com/en/about/red-hat-end-user-license-agreements#UBI",
+      "description": "Confluent Schema Registry provides a RESTful interface for developers to define standard schemas for their events, share them across the organization and safely evolve them in a way that is backward compatible and future proof.",
+      "distribution-scope": "public",
+      "io.buildah.version": "1.27.3",
+      "io.confluent.docker": "true",
+      "io.confluent.docker.build.number": "2",
+      "io.confluent.docker.git.id": "c77431e0",
+      "io.confluent.docker.git.repo": "confluentinc/schema-registry-images",
+      "io.k8s.description": "The Universal Base Image Minimal is a stripped down image that uses microdnf as a package manager. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.",
+      "io.k8s.display-name": "Red Hat Universal Base Image 8 Minimal",
+      "io.openshift.expose-services": "",
+      "io.openshift.tags": "minimal rhel8",
+      "io.podman.compose.config-hash": "0d314a7d44ef729913c68b99f213bc0e13bc08543b01438c061bae1f1c1b0fe0",
+      "io.podman.compose.project": "kafka_schema_registry",
+      "io.podman.compose.version": "1.0.6",
+      "maintainer": "partner-support@confluent.io",
+      "name": "cp-schema-registry",
+      "release": "7.2.4",
+      "summary": "Confluent Schema Registry provides a RESTful interface for developers to define standard schemas for their events, share them across the organization and safely evolve them in a way that is backward compatible and future proof.",
+      "url": "https://access.redhat.com/containers/#/registry.access.redhat.com/ubi8-minimal/images/8.7-1049.1675784874",
+      "vcs-ref": "146fdafc2595e26f5f9c1b9a2b3f36bbca8237e4",
+      "vcs-type": "git",
+      "vendor": "Confluent",
+      "version": "c77431e0"
+    },
+    "Mounts": [
+      "/etc/schema-registry/secrets"
+    ],
+    "Names": [
+      "tc-schema-registry"
+    ],
+    "Namespaces": {},
+    "Networks": [
+      "kafka_schema_registry_default"
+    ],
+    "Pid": 2759,
+    "Pod": "",
+    "PodName": "",
+    "Ports": [
+      {
+        "host_ip": "",
+        "container_port": 8081,
+        "host_port": 8081,
+        "range": 1,
+        "protocol": "tcp"
+      }
+    ],
+    "Restarts": 0,
+    "Size": null,
+    "StartedAt": 1698253887,
+    "State": "running",
+    "Status": "Up 19 minutes",
+    "Created": 1698253872
+  },
+  {
+    "AutoRemove": false,
+    "Command": null,
+    "CreatedAt": "19 minutes ago",
+    "CIDFile": "",
+    "Exited": false,
+    "ExitedAt": -62135596800,
+    "ExitCode": 0,
+    "Id": "93b68542fcc252e3734c4d28a028c41240915b062b4ba1fc804e960486540c79",
+    "Image": "docker.io/obsidiandynamics/kafdrop:latest",
+    "ImageID": "d982cd1654ae97bb9dd84841c50eb5b5fcde528d741a3db5b1bdd5157e3858d8",
+    "IsInfra": false,
+    "Labels": {
+      "PODMAN_SYSTEMD_UNIT": "podman-compose@kafka_schema_registry.service",
+      "com.docker.compose.container-number": "1",
+      "com.docker.compose.project": "kafka_schema_registry",
+      "com.docker.compose.project.config_files": "docker-compose.yaml",
+      "com.docker.compose.project.working_dir": "/Users/igor.laborie/Documents/Workspaces/Wefox/shared/wefox-ai-wai-rust/wai-testcontainers/src/compose/kafka_schema_registry",
+      "com.docker.compose.service": "kafdrop",
+      "io.podman.compose.config-hash": "0d314a7d44ef729913c68b99f213bc0e13bc08543b01438c061bae1f1c1b0fe0",
+      "io.podman.compose.project": "kafka_schema_registry",
+      "io.podman.compose.version": "1.0.6",
+      "org.opencontainers.image.ref.name": "ubuntu",
+      "org.opencontainers.image.version": "22.04"
+    },
+    "Mounts": [],
+    "Names": [
+      "tc-kafdrop"
+    ],
+    "Namespaces": {},
+    "Networks": [
+      "kafka_schema_registry_default"
+    ],
+    "Pid": 2835,
+    "Pod": "",
+    "PodName": "",
+    "Ports": [
+      {
+        "host_ip": "",
+        "container_port": 9000,
+        "host_port": 9000,
+        "range": 1,
+        "protocol": "tcp"
+      }
+    ],
+    "Restarts": 0,
+    "Size": null,
+    "StartedAt": 1698253888,
+    "State": "running",
+    "Status": "Up 19 minutes",
+    "Created": 1698253885
+  }
+]

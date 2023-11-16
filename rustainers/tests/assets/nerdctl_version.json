@@ -1,0 +1,36 @@
+{
+  "Client": {
+    "Version": "v1.5.0",
+    "GitCommit": "b33a58f288bc42351404a016e694190b897cd252",
+    "GoVersion": "go1.20.6",
+    "Os": "linux",
+    "Arch": "amd64",
+    "Components": [
+      {
+        "Name": "buildctl",
+        "Version": "v0.11.6",
+        "Details": {
+          "GitCommit": "2951a28cd7085eb18979b1f710678623d94ed578"
+        }
+      }
+    ]
+  },
+  "Server": {
+    "Components": [
+      {
+        "Name": "containerd",
+        "Version": "v1.7.2",
+        "Details": {
+          "GitCommit": "0cae528dd6cb557f7201036e9f43420650207b58"
+        }
+      },
+      {
+        "Name": "runc",
+        "Version": "1.1.7",
+        "Details": {
+          "GitCommit": "860f061b76bb4fc671f0f9e900f7d80ff93d4eb7"
+        }
+      }
+    ]
+  }
+}

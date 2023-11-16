@@ -1,0 +1,21 @@
+---
+source: rustainers/src/runner/docker.rs
+expression: version
+---
+DockerVersion {
+    client: DockerVersionItem {
+        api_version: Version {
+            major: 1,
+            minor: 41,
+            patch: None,
+        },
+        version: Version {
+            major: 20,
+            minor: 10,
+            patch: Some(
+                14,
+            ),
+        },
+    },
+    server: None,
+}
