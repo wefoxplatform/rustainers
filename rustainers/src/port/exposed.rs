@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 use tokio::sync::Mutex;
 
+use tracing::debug;
+
 use super::{Port, PortError};
 
 /// A shared exposed port (interior mutability)
@@ -57,7 +59,8 @@ impl ExposedPort {
     ///
     /// Fail if the port is unbound
     pub fn host_port(self) -> Result<Port, PortError> {
-        self.host_port.ok_or(PortError::PortNotBindYet)
+        self.host_port
+            .ok_or(PortError::PortNotBindYet(self.container_port))
     }
 
     /// Get the container port
@@ -78,6 +81,7 @@ impl ExposedPort {
     pub(crate) fn bind_port(&mut self, host_port: Port) {
         if self.host_port.is_none() {
             self.host_port = Some(host_port);
+            debug!(port=%self, "bound port");
         }
     }
 }

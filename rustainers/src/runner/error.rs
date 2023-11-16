@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::cmd::CommandError;
 use crate::version::Version;
 use crate::{ContainerId, IdError, Port, RunnableContainer};
@@ -60,6 +62,17 @@ pub enum RunnerError {
         id: ContainerId,
         /// The source error
         source: Box<ContainerError>,
+    },
+
+    /// Fail to run compose
+    #[error("Fail run compose in {path:?} because {source}\nrunner: {runner}")]
+    ComposeError {
+        /// The runner
+        runner: Runner,
+        /// The path containing the compose file
+        path: PathBuf,
+        /// The source error
+        source: Box<crate::compose::ComposeError>,
     },
 }
 

@@ -1,3 +1,5 @@
+use crate::Port;
+
 /// Port error
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
@@ -7,6 +9,6 @@ pub enum PortError {
     InvalidPortMapping(String),
 
     /// The port is not yet bind
-    #[error("Port not bind")]
-    PortNotBindYet,
+    #[error("Container port {0} not bind")]
+    PortNotBindYet(Port),
 }
