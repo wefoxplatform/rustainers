@@ -28,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn do_something_in_postgres(pg: &Postgres) -> anyhow::Result<()> {
-    let config = pg.config()?;
+    let config = pg.config().await?;
 
     // Connect to the database.
     let (client, connection) = tokio_postgres::connect(&config, NoTls).await?;

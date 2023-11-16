@@ -1,7 +1,13 @@
 use std::fmt::{self, Display};
 use std::str::FromStr;
+use std::sync::Arc;
+
+use tokio::sync::Mutex;
 
 use super::{Port, PortError};
+
+/// A shared exposed port (interior mutability)
+pub type SharedExposedPort = Arc<Mutex<ExposedPort>>;
 
 /// Define an exposed port
 ///
@@ -11,7 +17,7 @@ use super::{Port, PortError};
 ///
 /// ```rust
 /// # use rustainers::ExposedPort;
-/// let port_mapping = ExposedPort::new(80);
+/// let port_mapping = ExposedPort::shared(80);
 /// ```
 ///
 /// Create the exposed host port `8080` targeting the container `80` port:
@@ -20,7 +26,6 @@ use super::{Port, PortError};
 /// # use rustainers::ExposedPort;
 /// let port_mapping = ExposedPort::fixed(80, 8080);
 /// ```
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ExposedPort {
     pub(crate) container_port: Port,
@@ -29,19 +34,21 @@ pub struct ExposedPort {
 
 impl ExposedPort {
     /// Create an exposed port
-    pub fn new(container_port: impl Into<Port>) -> Self {
-        Self {
+    pub fn shared(container_port: impl Into<Port>) -> SharedExposedPort {
+        let result = Self {
             container_port: container_port.into(),
             host_port: None,
-        }
+        };
+        Arc::new(Mutex::new(result))
     }
 
     /// Create an exposed port with a fixed host port
-    pub fn fixed(container_port: impl Into<Port>, host_port: impl Into<Port>) -> Self {
-        Self {
+    pub fn fixed(container_port: impl Into<Port>, host_port: impl Into<Port>) -> SharedExposedPort {
+        let result = Self {
             container_port: container_port.into(),
             host_port: Some(host_port.into()),
-        }
+        };
+        Arc::new(Mutex::new(result))
     }
 
     /// Get the bound port (host)
@@ -139,22 +146,23 @@ mod tests {
         check!(s == s2);
     }
 
-    #[test]
-    fn should_bind_port() {
+    #[tokio::test]
+    async fn should_bind_port() {
         const CONTAINER: u16 = 42;
         let host = 1324;
-        let mut exposed_port = ExposedPort::new(CONTAINER);
+        let exposed_port = ExposedPort::shared(CONTAINER);
+        let mut shared = exposed_port.lock().await;
 
         // should fail if no host
-        let result = exposed_port.host_port();
+        let result = shared.host_port();
         let_assert!(Err(_) = result);
 
         // bind the good port
-        exposed_port.bind_port(Port(host));
-        check!(exposed_port.host_port == Some(Port(host)));
+        shared.bind_port(Port(host));
+        check!(shared.host_port == Some(Port(host)));
 
         // should fail if no host
-        let result = exposed_port.host_port();
+        let result = shared.host_port();
         let_assert!(Ok(Port(h)) = result);
         check!(h == host);
     }

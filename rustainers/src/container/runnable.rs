@@ -3,10 +3,10 @@ use std::fmt::{self, Display};
 use indexmap::IndexMap;
 use typed_builder::TypedBuilder;
 
-use crate::{ExposedPort, ImageReference, WaitStrategy};
+use crate::{ImageReference, SharedExposedPort, WaitStrategy};
 
 /// Contains configuration require to create and run a container
-#[derive(Debug, Clone, TypedBuilder)]
+#[derive(Debug, TypedBuilder)]
 #[builder(field_defaults(setter(prefix = "with_")))]
 #[non_exhaustive]
 pub struct RunnableContainer {
@@ -31,8 +31,8 @@ pub struct RunnableContainer {
     pub(crate) wait_strategy: WaitStrategy,
 
     /// The ports mapping
-    #[builder(default, setter(transform = |args: impl IntoIterator<Item = ExposedPort>| args.into_iter().collect()))]
-    pub(crate) port_mappings: Vec<ExposedPort>,
+    #[builder(default, setter(transform = |args: impl IntoIterator<Item = SharedExposedPort>| args.into_iter().collect()))]
+    pub(crate) port_mappings: Vec<SharedExposedPort>,
     // TODO networks
     // TODO volumes
     // TODO entrypoint

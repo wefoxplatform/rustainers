@@ -3,7 +3,6 @@ use tracing::{debug, Level};
 use tracing_subscriber::fmt::format::FmtSpan;
 use tracing_subscriber::fmt::time;
 
-use rustainers::images::Redis;
 use rustainers::runner::Runner;
 
 pub fn init_tracing(level: Level) {
@@ -25,10 +24,4 @@ pub fn runner() -> Runner {
     let runner = Runner::auto().expect("Should find a valid runner");
     debug!("Using runner {runner:?}");
     runner
-}
-
-#[fixture]
-#[once]
-pub fn redis() -> Redis {
-    Redis::default()
 }

@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn do_something_in_redis(redis: &Redis) -> anyhow::Result<()> {
-    let endpoint = redis.endpoint()?;
+    let endpoint = redis.endpoint().await?;
     info!("Using Redis at {endpoint}");
     let client = Client::open(endpoint)?;
     let mut con = client.get_connection()?;

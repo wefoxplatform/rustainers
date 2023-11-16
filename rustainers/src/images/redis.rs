@@ -1,8 +1,10 @@
+use std::mem;
+use std::sync::Arc;
 use std::time::Duration;
 
 use crate::{
     ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
-    RunnableContainerBuilder, ToRunnableContainer,
+    RunnableContainerBuilder, SharedExposedPort, ToRunnableContainer,
 };
 
 const REDIS_IMAGE: &ImageName = &ImageName::new("redis");
@@ -25,14 +27,14 @@ const PORT: Port = Port(6379);
 /// # let runner = rustainers::runner::Runner::auto()?;
 /// // ...
 /// let container = runner.start(default_image).await?;
-/// let endpoint = container.endpoint()?;
+/// let endpoint = container.endpoint().await?;
 /// // ...
 /// # Ok(())
 /// # }
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct Redis {
     image: ImageName,
-    port: ExposedPort,
+    port: SharedExposedPort,
 }
 
 impl Redis {
@@ -59,8 +61,10 @@ impl Redis {
     /// # Errors
     ///
     /// Could fail if the port is not bind
-    pub fn endpoint(&self) -> Result<String, PortError> {
-        let port = self.port.host_port()?;
+    pub async fn endpoint(&self) -> Result<String, PortError> {
+        let p = self.port.lock().await;
+        let port = p.host_port()?;
+        mem::drop(p);
         let url = format!("redis://localhost:{port}");
 
         Ok(url)
@@ -71,7 +75,7 @@ impl Default for Redis {
     fn default() -> Self {
         Self {
             image: REDIS_IMAGE.clone(),
-            port: ExposedPort::new(PORT),
+            port: ExposedPort::shared(PORT),
         }
     }
 }
@@ -87,7 +91,7 @@ impl ToRunnableContainer for Redis {
                     .with_interval(Duration::from_millis(96))
                     .build(),
             )
-            .with_port_mappings([self.port])
+            .with_port_mappings([Arc::clone(&self.port)])
             .build()
     }
 }
@@ -95,16 +99,17 @@ impl ToRunnableContainer for Redis {
 #[cfg(test)]
 #[allow(clippy::ignored_unit_patterns)]
 mod tests {
+
     use super::*;
     use assert2::{check, let_assert};
 
-    #[test]
-    fn should_create_endpoint() {
+    #[tokio::test]
+    async fn should_create_endpoint() {
         let image = Redis {
             port: ExposedPort::fixed(PORT, Port::new(9123)),
             ..Default::default()
         };
-        let result = image.endpoint();
+        let result = image.endpoint().await;
         let_assert!(Ok(endpoint) = result);
         check!(endpoint == "redis://localhost:9123");
     }
