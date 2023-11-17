@@ -37,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn do_something_in_minio(minio: &Minio, bucket_name: &str) -> anyhow::Result<()> {
-    let endpoint = minio.endpoint()?;
+    let endpoint = minio.endpoint().await?;
     info!("Using MinIO at {endpoint}");
     let s3 = AmazonS3Builder::from_env()
         .with_region(minio.region())

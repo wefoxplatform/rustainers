@@ -1,9 +1,11 @@
+use std::mem;
+use std::sync::Arc;
 use std::time::Duration;
 
 use crate::runner::RunnerError;
 use crate::{
     Container, ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
-    RunnableContainerBuilder, ToRunnableContainer,
+    RunnableContainerBuilder, SharedExposedPort, ToRunnableContainer,
 };
 
 const DATA: &str = "/data";
@@ -30,16 +32,16 @@ const CONSOLE_PORT: Port = Port(9001);
 /// # let runner = rustainers::runner::Runner::auto()?;
 /// // ...
 /// let container = runner.start(default_image).await?;
-/// let endpoint = container.endpoint()?;
+/// let endpoint = container.endpoint().await?;
 /// // ...
 /// # Ok(())
 /// # }
 ///```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct Minio {
     image: ImageName,
-    port: ExposedPort,
-    console_port: ExposedPort,
+    port: SharedExposedPort,
+    console_port: SharedExposedPort,
 }
 
 impl Minio {
@@ -100,8 +102,10 @@ impl Minio {
     /// # Errors
     ///
     /// Could fail if the port is not bind
-    pub fn endpoint(&self) -> Result<String, PortError> {
-        let port = self.port.host_port()?;
+    pub async fn endpoint(&self) -> Result<String, PortError> {
+        let p = self.port.lock().await;
+        let port = p.host_port()?;
+        mem::drop(p);
         let url = format!("http://localhost:{port}");
 
         Ok(url)
@@ -112,8 +116,10 @@ impl Minio {
     /// # Errors
     ///
     /// Could fail if the console port is not bind
-    pub fn console_endpoint(&self) -> Result<String, PortError> {
-        let port = self.console_port.host_port()?;
+    pub async fn console_endpoint(&self) -> Result<String, PortError> {
+        let p = self.console_port.lock().await;
+        let port = p.host_port()?;
+        mem::drop(p);
         let url = format!("http://localhost:{port}");
 
         Ok(url)
@@ -141,8 +147,8 @@ impl Default for Minio {
     fn default() -> Self {
         Minio {
             image: MINIO_IMAGE.clone(),
-            port: ExposedPort::new(PORT),
-            console_port: ExposedPort::new(CONSOLE_PORT),
+            port: ExposedPort::shared(PORT),
+            console_port: ExposedPort::shared(CONSOLE_PORT),
         }
     }
 }
@@ -158,7 +164,7 @@ impl ToRunnableContainer for Minio {
                     .build()
             })
             .with_command(["server", DATA])
-            .with_port_mappings([self.port, self.console_port])
+            .with_port_mappings([Arc::clone(&self.port), Arc::clone(&self.console_port)])
             .build()
     }
 }
@@ -166,16 +172,17 @@ impl ToRunnableContainer for Minio {
 #[cfg(test)]
 #[allow(clippy::ignored_unit_patterns)]
 mod tests {
+
     use super::*;
     use assert2::{check, let_assert};
 
-    #[test]
-    fn should_create_endpoint() {
+    #[tokio::test]
+    async fn should_create_endpoint() {
         let image = Minio {
             port: ExposedPort::fixed(PORT, Port::new(9123)),
             ..Default::default()
         };
-        let result = image.endpoint();
+        let result = image.endpoint().await;
         let_assert!(Ok(endpoint) = result);
         check!(endpoint == "http://localhost:9123");
     }

@@ -1,4 +1,5 @@
 use std::fmt::{Debug, Display};
+use std::mem;
 use std::net::SocketAddr;
 use std::time::Duration;
 
@@ -62,8 +63,10 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         }
 
         // --publish
-        for &port_mapping in &image.port_mappings {
-            let publish = port_mapping.to_publish();
+        for port_mapping in &image.port_mappings {
+            let mapping = port_mapping.lock().await;
+            let publish = mapping.to_publish();
+            mem::drop(mapping);
             cmd.push_args(["--publish", &publish]);
         }
 
@@ -282,10 +285,11 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             .await?;
 
         // Port Mapping
-        for port_mapping in &mut image.port_mappings {
-            if port_mapping.host_port.is_none() {
-                let host_port = self.port(id, port_mapping.container_port).await?;
-                port_mapping.bind_port(host_port);
+        for port_mapping in &image.port_mappings {
+            let mut mapping = port_mapping.lock().await;
+            if mapping.host_port.is_none() {
+                let host_port = self.port(id, mapping.container_port).await?;
+                mapping.bind_port(host_port);
             }
         }
 

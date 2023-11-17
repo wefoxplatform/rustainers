@@ -10,11 +10,12 @@ A runnable image should implement the [`crate::ToRunnableContainer`] trait.
 
 ```rust, no_run
 use std::fmt::Display;
+use std::sync::Arc;
 
 use rustainers::runner::{RunOption, Runner};
 use rustainers::{
     ExposedPort, HealthCheck, RunnableContainer, RunnableContainerBuilder, Port, ToRunnableContainer,
-    ImageName,
+    ImageName, SharedExposedPort,
 };
 
 // Declare the image as a constant.
@@ -29,7 +30,7 @@ struct Nginx {
     /// The image name
     image: ImageName,
     /// The exposed port
-    port: ExposedPort,
+    port: SharedExposedPort,
 }
 
 // Provide an easy way to create the image instance
@@ -37,7 +38,7 @@ impl Default for Nginx {
     fn default() -> Self {
         Self {
             image: NGINX_IMAGE.clone(),
-            port: ExposedPort::new(PORT), // the container port
+            port: ExposedPort::shared(PORT), // the container port
         }
     }
 }
@@ -60,7 +61,7 @@ impl ToRunnableContainer for Nginx {
             )
             // ports mapping
             // bound a random port available port of the host to the container `80` port
-            .with_port_mappings([self.port])
+            .with_port_mappings([Arc::clone(&self.port)])
             .build()
     }
 }

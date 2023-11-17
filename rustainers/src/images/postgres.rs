@@ -1,8 +1,10 @@
+use std::mem;
+use std::sync::Arc;
 use std::time::Duration;
 
 use crate::{
     ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
-    RunnableContainerBuilder, ToRunnableContainer,
+    RunnableContainerBuilder, SharedExposedPort, ToRunnableContainer,
 };
 
 const POSTGRES_IMAGE: &ImageName = &ImageName::new("postgres");
@@ -35,18 +37,18 @@ const POSTGRES_DATABASE: &str = POSTGRES_USER;
 /// # let runner = rustainers::runner::Runner::auto()?;
 /// // ...
 /// let container = runner.start(default_image).await?;
-/// let url = container.url()?;
+/// let url = container.url().await?;
 /// // ...
 /// # Ok(())
 /// # }
 ///```
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Postgres {
     image: ImageName,
     user: String,
     password: String,
     db: String,
-    port: ExposedPort,
+    port: SharedExposedPort,
 }
 
 impl Postgres {
@@ -157,10 +159,12 @@ impl Postgres {
     /// # Errors
     ///
     /// Could fail if the port is not bind
-    pub fn url(&self) -> Result<String, PortError> {
+    pub async fn url(&self) -> Result<String, PortError> {
         let user = &self.user;
         let password = &self.password;
-        let port = self.port.host_port()?;
+        let p = self.port.lock().await;
+        let port = p.host_port()?;
+        mem::drop(p);
         let database = &self.db;
         let url = format!("postgresql://{user}:{password}@localhost:{port}/{database}");
         Ok(url)
@@ -171,10 +175,12 @@ impl Postgres {
     /// # Errors
     ///
     /// Could fail if the port is not bind
-    pub fn config(&self) -> Result<String, PortError> {
+    pub async fn config(&self) -> Result<String, PortError> {
         let user = &self.user;
         let password = &self.password;
-        let port = self.port.host_port()?;
+        let p = self.port.lock().await;
+        let port = p.host_port()?;
+        mem::drop(p);
         let database = &self.db;
         let config =
             format!("host=localhost user={user} password={password} port={port} dbname={database}");
@@ -189,7 +195,7 @@ impl Default for Postgres {
             user: String::from(POSTGRES_USER),
             password: String::from(POSTGRES_PASSWORD),
             db: String::from(POSTGRES_DATABASE),
-            port: ExposedPort::new(PORT),
+            port: ExposedPort::shared(PORT),
         }
     }
 }
@@ -211,7 +217,7 @@ impl ToRunnableContainer for Postgres {
                 ("POSTGRES_PASSWORD", &self.password),
                 ("POSTGRES_DB", &self.db),
             ])
-            .with_port_mappings([self.port])
+            .with_port_mappings([Arc::clone(&self.port)])
             .build()
     }
 }
@@ -219,27 +225,28 @@ impl ToRunnableContainer for Postgres {
 #[cfg(test)]
 #[allow(clippy::ignored_unit_patterns)]
 mod tests {
+
     use assert2::check;
 
     use super::*;
 
-    #[test]
-    fn should_build_config() {
+    #[tokio::test]
+    async fn should_build_config() {
         let image = Postgres {
             port: ExposedPort::fixed(PORT, Port::new(5432)),
             ..Default::default()
         };
-        let result = image.config().unwrap();
+        let result = image.config().await.unwrap();
         check!(result == "host=localhost user=postgres password=passwd port=5432 dbname=postgres");
     }
 
-    #[test]
-    fn should_build_url() {
+    #[tokio::test]
+    async fn should_build_url() {
         let image = Postgres {
             port: ExposedPort::fixed(PORT, Port::new(5432)),
             ..Default::default()
         };
-        let result = image.url().unwrap();
+        let result = image.url().await.unwrap();
         check!(result == "postgresql://postgres:passwd@localhost:5432/postgres");
     }
 }

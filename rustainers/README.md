@@ -34,7 +34,7 @@ let runner = Runner::auto()?;
 let image = Postgres::default().with_tag("15.2");
 let container = runner.start(image).await?;
 
-let url = container.url()?;
+let url = container.url().await?;
 do_something_with_postgres(url).await?;
 # Ok(())
 # }
