@@ -127,6 +127,6 @@ See [`compose::images`](crate::compose::images) module documentation.
 [nerdctl]: https://github.com/containerd/nerdctl
 [nerdctl compose]: https://github.com/containerd/nerdctl/blob/main/docs/compose.md
 [tokio]: https://tokio.rs/
-[testconatiners-rs]: https://github.com/testcontainers/testcontainers-rs
+[testcontainers-rs]: https://github.com/testcontainers/testcontainers-rs
 [docs]: https://docs.rs/rustainers
 [examples]: https://github.com/wefoxplatform/rustainers/tree/main/rustainers/examples
