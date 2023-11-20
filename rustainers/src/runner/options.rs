@@ -3,6 +3,12 @@ use std::time::Duration;
 use typed_builder::TypedBuilder;
 
 /// Run options
+///
+/// Available options:
+///
+/// * `wait_interval`: wait until re-check a container state (default 500ms)
+/// * `remove`: if we remove the container after the stop (`--rm` flag, default false)
+/// * `name`: provide the container name (default unnamed, use the runner name)
 #[derive(Debug, Clone, TypedBuilder)]
 #[builder(field_defaults(default, setter(prefix = "with_")))]
 pub struct RunOption {

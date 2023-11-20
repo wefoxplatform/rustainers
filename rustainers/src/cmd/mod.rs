@@ -1,6 +1,8 @@
 use std::fmt::{self, Display};
+use std::path::Path;
 use std::process::{ExitStatus, Output};
 
+use indexmap::IndexMap;
 use serde::de::DeserializeOwned;
 use tracing::{debug, warn};
 
@@ -11,6 +13,8 @@ pub use self::error::*;
 pub(crate) struct Cmd<'a> {
     command: &'a str,
     args: Vec<String>,
+    dir: Option<&'a Path>,
+    env: IndexMap<String, String>,
     ignore_stderr: bool,
 }
 
@@ -19,8 +23,18 @@ impl<'a> Cmd<'a> {
         Self {
             command,
             args: vec![],
+            dir: None,
+            env: IndexMap::new(),
             ignore_stderr: false,
         }
+    }
+
+    pub(crate) fn with_dir(&mut self, path: &'a Path) {
+        self.dir = Some(path);
+    }
+
+    pub(crate) fn set_env(&mut self, env: IndexMap<String, String>) {
+        self.env = env;
     }
 
     pub(crate) fn ignore_stderr(&mut self) {
@@ -95,6 +109,10 @@ impl<'a> Cmd<'a> {
     fn output_blocking(&self) -> Result<Output, CommandError> {
         debug!("Running blocking command\n{self}");
         let mut c = std::process::Command::new(self.command);
+        c.envs(&self.env);
+        if let Some(dir) = self.dir {
+            c.current_dir(dir);
+        }
         let output = c.args(&self.args).output();
         self.handle_output(output)
     }
@@ -124,6 +142,10 @@ impl<'a> Cmd<'a> {
     async fn output(&self) -> Result<Output, CommandError> {
         debug!("Running command\n{self}");
         let mut c = tokio::process::Command::new(self.command);
+        c.envs(&self.env);
+        if let Some(dir) = self.dir {
+            c.current_dir(dir);
+        }
         let output = c.args(&self.args).output().await;
         self.handle_output(output)
     }

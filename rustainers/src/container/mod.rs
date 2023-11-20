@@ -28,6 +28,11 @@ mod state;
 pub use self::state::*;
 
 /// A running container
+///
+/// It implements [`std::ops::Deref`] for the image.
+///
+/// When it's dropped, by default it's stopping the container,
+/// but you can choose to keep alive this container by calling [`Container::detach`](Self::detach)
 #[derive(Debug)]
 pub struct Container<I>
 where

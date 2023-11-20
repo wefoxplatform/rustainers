@@ -1,21 +1,20 @@
 # Runnable images
 
-This module contains runnable images that can be started by a [`crate::runner::Runner`].
+This module contains runnable images that can be started by a [`Runner`](crate::runner::Runner).
 
-These images implements the [`crate::ToRunnableContainer`] trait.
+These images implements the [`ToRunnableContainer`](crate::ToRunnableContainer) trait.
 
 ## Create a custom runnable image
 
-A runnable image should implement the [`crate::ToRunnableContainer`] trait.
+A runnable image should implement the [`ToRunnableContainer`](crate::ToRunnableContainer) trait.
 
 ```rust, no_run
 use std::fmt::Display;
-use std::sync::Arc;
 
 use rustainers::runner::{RunOption, Runner};
 use rustainers::{
     ExposedPort, HealthCheck, RunnableContainer, RunnableContainerBuilder, Port, ToRunnableContainer,
-    ImageName, SharedExposedPort,
+    ImageName,
 };
 
 // Declare the image as a constant.
@@ -30,7 +29,7 @@ struct Nginx {
     /// The image name
     image: ImageName,
     /// The exposed port
-    port: SharedExposedPort,
+    port: ExposedPort,
 }
 
 // Provide an easy way to create the image instance
@@ -38,7 +37,7 @@ impl Default for Nginx {
     fn default() -> Self {
         Self {
             image: NGINX_IMAGE.clone(),
-            port: ExposedPort::shared(PORT), // the container port
+            port: ExposedPort::new(PORT), // the container port
         }
     }
 }
@@ -61,7 +60,7 @@ impl ToRunnableContainer for Nginx {
             )
             // ports mapping
             // bound a random port available port of the host to the container `80` port
-            .with_port_mappings([Arc::clone(&self.port)])
+            .with_port_mappings([self.port.clone()])
             .build()
     }
 }

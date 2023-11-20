@@ -1,0 +1,23 @@
+---
+source: wai-testcontainers/src/compose/service.rs
+expression: services
+---
+Services(
+    {
+        ComposeService(
+            "my-kafdrop",
+        ): ContainerId(
+            "4a22558ba951230557309aeae020574382632b6147bb2c58105ce70f16d948fa",
+        ),
+        ComposeService(
+            "my-kafka",
+        ): ContainerId(
+            "36eb91e2ba2f36303c95d5716d0726d349cbb554624724caf43a30349592a1d4",
+        ),
+        ComposeService(
+            "my-schema-registry",
+        ): ContainerId(
+            "faa56796d83b772524305dbfb42358d9089fa0352fcbba60ac13ac73b3916ffe",
+        ),
+    },
+)

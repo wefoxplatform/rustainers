@@ -1,12 +1,11 @@
 use std::process::Command;
-use std::sync::Arc;
 
 use tracing::{info, Level};
 
 use rustainers::runner::{RunOption, Runner};
 use rustainers::{
     ExposedPort, HealthCheck, ImageName, RunnableContainer, RunnableContainerBuilder,
-    SharedExposedPort, ToRunnableContainer,
+    ToRunnableContainer,
 };
 
 mod common;
@@ -27,8 +26,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Now I can use {container}");
 
     // Making a dummy HTTP request
-    let container_port = container.port.lock().await;
-    let port = container_port.host_port()?;
+    let port = container.port.host_port().await?;
     let url = format!("http://localhost:{port}"); //DevSkim: ignore DS137138
     Command::new("curl").args(["-v", &url]).status()?;
 
@@ -39,17 +37,17 @@ const NGINX_IMAGE: &ImageName = &ImageName::new("nginx");
 
 const PORT: u16 = 80;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct Nginx {
     image: ImageName,
-    port: SharedExposedPort,
+    port: ExposedPort,
 }
 
 impl Default for Nginx {
     fn default() -> Self {
         Self {
             image: NGINX_IMAGE.clone(),
-            port: ExposedPort::shared(PORT),
+            port: ExposedPort::new(PORT),
         }
     }
 }
@@ -63,7 +61,7 @@ impl ToRunnableContainer for Nginx {
                     .with_command("curl -sf http://localhost") //DevSkim: ignore DS137138
                     .build(),
             )
-            .with_port_mappings([Arc::clone(&self.port)])
+            .with_port_mappings([self.port.clone()])
             .build()
     }
 }
