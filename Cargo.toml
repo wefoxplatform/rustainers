@@ -3,6 +3,6 @@ members = ["rustainers"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0-dev"
+version = "0.10.0"
 edition = "2021"
 authors = ["igor.laborie@wefox.com"]
