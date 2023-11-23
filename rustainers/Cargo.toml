@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 
 categories = ["development-tools::testing"]
 keywords = ["testcontainers", "container", "docker", "podman"]
-description = "An simple, opinionated way to run containers for tests."
+description = "A simple, opinionated way to run containers for tests."
 readme = "README.md"
 repository = "https://github.com/wefoxplatform/rustainers"
 
