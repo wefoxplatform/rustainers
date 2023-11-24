@@ -5,7 +5,7 @@ use rstest::rstest;
 use tokio::task::JoinSet;
 use tracing::debug;
 
-use rustainers::images::{Minio, Postgres, Redis};
+use rustainers::images::{Minio, Mongo, Postgres, Redis};
 use rustainers::runner::{RunOption, Runner};
 
 mod common;
@@ -41,6 +41,18 @@ async fn test_image_minio(runner: &Runner) -> anyhow::Result<()> {
 async fn test_image_redis(runner: &Runner) -> anyhow::Result<()> {
     let options = RunOption::builder().with_remove(true).build();
     let image = Redis::default();
+    let container = runner.start_with_options(image, options).await?;
+    debug!("Started {container}");
+
+    container.endpoint().await?;
+    Ok(())
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_image_mongo(runner: &Runner) -> anyhow::Result<()> {
+    let options = RunOption::builder().with_remove(true).build();
+    let image = Mongo::default();
     let container = runner.start_with_options(image, options).await?;
     debug!("Started {container}");
 

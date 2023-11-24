@@ -8,3 +8,6 @@ pub use self::minio::*;
 
 mod redis;
 pub use self::redis::*;
+
+mod mongo;
+pub use self::mongo::*;

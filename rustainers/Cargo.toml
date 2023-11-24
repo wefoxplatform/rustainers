@@ -45,6 +45,7 @@ assert2 = "0.3"
 bytes = "1.5"
 futures-util = "0.3.28"
 insta = { version = "1.29", features = ["json"] }
+mongodb = "2.7.1"
 object_store = { version = "0.8.0", features = ["aws"] }
 rdkafka = { version = "0.36" }
 redis = "0.23"
