@@ -48,7 +48,7 @@ impl Display for Docker {
 pub(super) fn create() -> Result<Docker, RunnerError> {
     // Check binary version
     let mut cmd = Cmd::new("docker");
-    cmd.push_args(["version", "--format", "json"]);
+    cmd.push_args(["version", "--format", "{{json .}}"]);
     let Ok(Some(version)) = cmd.json_blocking::<Option<DockerVersion>>() else {
         return Err(RunnerError::CommandNotAvailable(String::from("docker")));
     };
