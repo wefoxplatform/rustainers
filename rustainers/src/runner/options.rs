@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use typed_builder::TypedBuilder;
 
+use crate::Network;
+
 /// Run options
 ///
 /// Available options:
@@ -22,6 +24,10 @@ pub struct RunOption {
     /// Assign a name to the container
     #[builder(setter(into, strip_option))]
     pub(super) name: Option<String>,
+
+    /// The network
+    #[builder(default, setter(into))]
+    pub(crate) network: Network,
 }
 
 impl RunOption {

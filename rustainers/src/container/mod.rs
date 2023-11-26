@@ -21,6 +21,9 @@ pub(crate) use self::process::ContainerProcess;
 mod wait_condition;
 pub use self::wait_condition::*;
 
+mod network;
+pub use self::network::*;
+
 mod health;
 pub(crate) use self::health::ContainerHealth;
 

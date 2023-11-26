@@ -1,8 +1,9 @@
 use std::fmt::{self, Debug, Display};
+use std::net::Ipv4Addr;
 
 use tracing::info;
 
-use crate::{Container, RunnableContainer, ToRunnableContainer};
+use crate::{Container, Network, RunnableContainer, ToRunnableContainer};
 
 mod docker;
 pub use self::docker::Docker;
@@ -164,6 +165,73 @@ impl Runner {
             id,
             detached: false,
         })
+    }
+
+    /// Execute a command into the container
+    ///
+    /// # Errors
+    ///
+    /// Could fail if we cannot execute the command
+    pub async fn create_network(&self, name: impl Into<String>) -> Result<Network, RunnerError> {
+        let name = name.into();
+        match self {
+            Self::Docker(runner) => runner.create_network(&name).await,
+            Self::Podman(runner) => runner.create_network(&name).await,
+            Self::Nerdctl(runner) => runner.create_network(&name).await,
+        }
+        .map_err(|source| RunnerError::CreateNetworkError {
+            runner: self.clone(),
+            name: name.clone(),
+            source: Box::new(source),
+        })?;
+
+        Ok(Network::Custom(name))
+    }
+
+    /// Get the container IP for a custom network
+    ///
+    /// # Errors
+    ///
+    /// Fail if the network is not custom
+    /// Fail if the IP is not found
+    /// Could fail if we cannot execute the inspect command
+    pub async fn network_ip<I>(
+        &self,
+        container: &Container<I>,
+        network: &Network,
+    ) -> Result<Ipv4Addr, RunnerError>
+    where
+        I: ToRunnableContainer,
+    {
+        let id = container.id;
+        let Some(net) = network.name() else {
+            return Err(RunnerError::ExpectedNetworkNameError {
+                runner: self.clone(),
+                network: Box::new(network.clone()),
+                container: id,
+            });
+        };
+
+        let container_network = match self {
+            Self::Docker(runner) => runner.network_ip(id, net).await,
+            Self::Podman(runner) => runner.network_ip(id, net).await,
+            Self::Nerdctl(runner) => runner.network_ip(id, net).await,
+        }
+        .map_err(|source| RunnerError::FindNetworkIpError {
+            runner: self.clone(),
+            network: Box::new(network.clone()),
+            container: Box::new(id),
+            source: Box::new(source),
+        })?;
+
+        let Some(ip) = container_network.ip_address else {
+            return Err(RunnerError::NoNetworkIp {
+                runner: self.clone(),
+                network: Box::new(network.clone()),
+                container: id,
+            });
+        };
+        Ok(ip.0)
     }
 
     /// Execute a command into the container

@@ -5,6 +5,8 @@ use tracing_subscriber::fmt::time;
 
 use rustainers::runner::Runner;
 
+pub mod images;
+
 pub fn init_tracing(level: Level) {
     tracing_subscriber::fmt()
         .pretty()

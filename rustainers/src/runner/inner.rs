@@ -8,8 +8,8 @@ use tracing::{info, trace, warn};
 
 use crate::cmd::Cmd;
 use crate::{
-    ContainerHealth, ContainerId, ContainerProcess, ContainerState, ContainerStatus, Port,
-    RunnableContainer, WaitStrategy,
+    ContainerHealth, ContainerId, ContainerNetwork, ContainerProcess, ContainerState,
+    ContainerStatus, Network, Port, RunnableContainer, WaitStrategy,
 };
 
 use super::{ContainerError, RunOption};
@@ -35,12 +35,21 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         Ok(result)
     }
 
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn create_network(&self, name: &str) -> Result<(), ContainerError> {
+        let mut cmd = self.command();
+        cmd.push_args(["network", "create", name]);
+        cmd.status().await?;
+        Ok(())
+    }
+
     #[tracing::instrument(level = "debug", skip(self, image), fields(runner = %self, image = %image))]
     async fn create_and_start(
         &self,
         image: &RunnableContainer,
         remove: bool,
         name: Option<&str>,
+        network: &Network,
     ) -> Result<ContainerId, ContainerError> {
         let mut cmd = self.command();
         cmd.push_args(["run", "--detach"]);
@@ -71,6 +80,10 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         if let WaitStrategy::CustomHealthCheck(hc) = &image.wait_strategy {
             cmd.push_args(hc.to_vec());
         }
+
+        // Network
+        let network = network.cmd_arg();
+        cmd.push_arg(network.as_ref());
 
         // descriptor (name:tag or other alternatives)
         cmd.push_arg(descriptor);
@@ -143,6 +156,15 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
 
     async fn full_status(&self, id: ContainerId) -> Result<ContainerState, ContainerError> {
         self.inspect(id, ".State").await
+    }
+
+    async fn network_ip(
+        &self,
+        id: ContainerId,
+        network: &str,
+    ) -> Result<ContainerNetwork, ContainerError> {
+        let path = format!(".NetworkSettings.Networks.{network}");
+        self.inspect(id, &path).await
     }
 
     #[tracing::instrument(level = "debug", skip(self, id), fields(runner = %self, id = %id))]
@@ -239,6 +261,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             wait_interval,
             remove,
             name,
+            network,
         } = options;
 
         // Container name
@@ -269,11 +292,13 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             // Need cleanup before restarting the container
             Some((ContainerStatus::Dead, id)) => {
                 self.rm(id).await?;
-                self.create_and_start(image, remove, container_name).await?
+                self.create_and_start(image, remove, container_name, &network)
+                    .await?
             }
             // Need to create and start the container
             Some((ContainerStatus::Unknown, _)) | None => {
-                self.create_and_start(image, remove, container_name).await?
+                self.create_and_start(image, remove, container_name, &network)
+                    .await?
             }
         };
 

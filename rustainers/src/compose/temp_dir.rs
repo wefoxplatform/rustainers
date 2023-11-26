@@ -147,7 +147,7 @@ impl TemporaryDirectory {
         Ok(())
     }
 
-    // FIXME create from an existing path, with keeping the permissions
+    // TODO create from an existing path, with keeping the permissions
 
     /// Detach the temp. directory.
     ///

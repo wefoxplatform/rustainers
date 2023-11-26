@@ -54,7 +54,6 @@ pub struct RunnableContainer {
     /// The ports mapping
     #[builder(default, setter(transform = |args: impl IntoIterator<Item = ExposedPort>| args.into_iter().collect()))]
     pub(crate) port_mappings: Vec<ExposedPort>,
-    // TODO networks
     // TODO volumes
     // TODO entrypoint
 }
