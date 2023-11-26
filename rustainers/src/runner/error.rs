@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::cmd::CommandError;
 use crate::version::Version;
-use crate::{ContainerId, IdError, Port, RunnableContainer};
+use crate::{ContainerId, IdError, Network, Port, RunnableContainer};
 
 use super::Runner;
 
@@ -51,6 +51,54 @@ pub enum RunnerError {
         id: ContainerId,
         /// The source error
         source: Box<ContainerError>,
+    },
+
+    /// Fail to exec a container
+    #[error("Fail to create network '{name}' because {source}\nrunner: {runner}")]
+    CreateNetworkError {
+        /// The runner
+        runner: Runner,
+        /// The network name
+        name: String,
+        /// The source error
+        source: Box<ContainerError>,
+    },
+
+    /// Fail to retrieve container IP in a specific network
+    #[error(
+        "Fail to retrieve container {container} IP for network '{network}' because {source}\nrunner: {runner}"
+    )]
+    FindNetworkIpError {
+        /// The runner
+        runner: Runner,
+        /// The network
+        network: Box<Network>,
+        /// The container,
+        container: Box<ContainerId>,
+        /// The source error
+        source: Box<ContainerError>,
+    },
+
+    /// Expected a network name
+    #[error("Fail to retrieve container {container} IP because we expect a network with name, got {network}")]
+    ExpectedNetworkNameError {
+        /// The runner
+        runner: Runner,
+        /// The network
+        network: Box<Network>,
+        /// The container,
+        container: ContainerId,
+    },
+
+    /// No IP found
+    #[error("No IP found for container {container} and network {network}")]
+    NoNetworkIp {
+        /// The runner
+        runner: Runner,
+        /// The network
+        network: Box<Network>,
+        /// The container,
+        container: ContainerId,
     },
 
     /// Fail to stop a container
