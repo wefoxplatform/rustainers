@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2023-11-30
+
+### Bug Fixes
+
+- Docs typo
+- Update docker --version command
+
+### Features
+
+- Add mongo image
+
+### Release
+
+- Version 0.11.0
+
 ## [0.10.0] - 2023-11-21
 
 ### Bug Fixes
@@ -12,7 +27,13 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Initial contribution
+- Initial contribution
 - Add compose support
+- Add compose support
+
+### Miscellaneous Tasks
+
+- Empty
 
 ### Release
 

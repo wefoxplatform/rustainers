@@ -6,7 +6,7 @@
 
 `rustainers` is a simple, opinionated way to run containers for tests.
 
-## TLDR
+## TL;DR
 
 More information about this crate can be found in the [crate documentation][docs].
 
