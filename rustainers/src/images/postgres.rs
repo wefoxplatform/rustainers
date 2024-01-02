@@ -53,101 +53,38 @@ impl Postgres {
     /// Set the image tag
     #[must_use]
     pub fn with_tag(self, tag: impl Into<String>) -> Self {
-        let Self {
-            mut image,
-            user,
-            password,
-            db,
-            port,
-        } = self;
+        let Self { mut image, .. } = self;
         image.set_tag(tag);
-        Self {
-            image,
-            user,
-            password,
-            db,
-            port,
-        }
+        Self { image, ..self }
     }
 
     /// Set the image digest
     #[must_use]
     pub fn with_digest(self, digest: impl Into<String>) -> Self {
-        let Self {
-            mut image,
-            user,
-            password,
-            db,
-            port,
-        } = self;
+        let Self { mut image, .. } = self;
         image.set_digest(digest);
-        Self {
-            image,
-            user,
-            password,
-            db,
-            port,
-        }
+        Self { image, ..self }
     }
 
     /// Set the database user
     #[must_use]
     pub fn with_user(self, user: impl Into<String>) -> Self {
-        let Self {
-            image,
-            password,
-            db,
-            port,
-            ..
-        } = self;
         let user = user.into();
-        Self {
-            image,
-            user,
-            password,
-            db,
-            port,
-        }
+        Self { user, ..self }
     }
 
     /// Set the database password
     #[must_use]
     pub fn with_password(self, password: impl Into<String>) -> Self {
-        let Self {
-            image,
-            user,
-            db,
-            port,
-            ..
-        } = self;
         let password = password.into();
-        Self {
-            image,
-            user,
-            password,
-            db,
-            port,
-        }
+        Self { password, ..self }
     }
 
     /// Set the database db
     #[must_use]
     pub fn with_db(self, db: impl Into<String>) -> Self {
-        let Self {
-            image,
-            user,
-            password,
-            port,
-            ..
-        } = self;
         let db = db.into();
-        Self {
-            image,
-            user,
-            password,
-            db,
-            port,
-        }
+        Self { db, ..self }
     }
 }
 

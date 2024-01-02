@@ -1,5 +1,7 @@
 use std::fmt::{self, Debug, Display};
 use std::ops::Deref;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use tracing::{error, info};
 
@@ -30,6 +32,9 @@ pub(crate) use self::health::ContainerHealth;
 mod state;
 pub use self::state::*;
 
+mod volume;
+pub use self::volume::*;
+
 /// A running container
 ///
 /// It implements [`std::ops::Deref`] for the image.
@@ -45,8 +50,8 @@ where
     pub(crate) id: ContainerId,
     pub(crate) image: I,
     pub(crate) image_ref: ImageReference,
-    pub(crate) detached: bool,
-    // TODO maybe a lock?
+
+    pub(crate) detached: Arc<AtomicBool>,
 }
 
 impl<I> Container<I>
@@ -61,8 +66,8 @@ where
     /// Detach the container
     ///
     /// A detached container won't be stopped during the drop.
-    pub fn detach(&mut self) {
-        self.detached = true;
+    pub fn detach(&self) {
+        self.detached.store(true, Ordering::Relaxed);
     }
 }
 
@@ -82,7 +87,8 @@ where
     I: ToRunnableContainer,
 {
     fn drop(&mut self) {
-        if self.detached {
+        let detached = self.detached.load(Ordering::Relaxed);
+        if detached {
             info!("Detached container {self} is NOT stopped");
             return;
         }

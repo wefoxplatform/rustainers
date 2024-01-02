@@ -1,5 +1,7 @@
 use std::fs::Permissions;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use tokio::fs;
 use tracing::{info, warn};
@@ -57,7 +59,7 @@ pub struct TemporaryFile {
 /// See [existings compose images](https://github.com/wefoxplatform/rustainers/tree/main/rustainers/src/compose/images/)
 /// for real usages.
 #[derive(Debug, Clone)]
-pub struct TemporaryDirectory(PathBuf, bool);
+pub struct TemporaryDirectory(PathBuf, Arc<AtomicBool>);
 
 impl TemporaryDirectory {
     /// Create a new empty temporary directory
@@ -83,7 +85,7 @@ impl TemporaryDirectory {
         }
 
         Self::mkdirp(&tmp).await?;
-        Ok(Self(tmp, false))
+        Ok(Self(tmp, Arc::new(AtomicBool::new(false))))
     }
 
     /// Create a new empty temporary directory with some files
@@ -152,8 +154,8 @@ impl TemporaryDirectory {
     /// Detach the temp. directory.
     ///
     /// A detached [`TemporaryDirectory`] is not removed during drop.
-    pub fn detach(&mut self) {
-        self.1 = true;
+    pub fn detach(&self) {
+        self.1.store(true, Ordering::Relaxed);
     }
 }
 
@@ -165,7 +167,7 @@ impl AsRef<Path> for TemporaryDirectory {
 
 impl Drop for TemporaryDirectory {
     fn drop(&mut self) {
-        let detached = self.1;
+        let detached = self.1.load(Ordering::Relaxed);
         if !detached && self.0.exists() {
             if let Err(err) = std::fs::remove_dir_all(&self.0) {
                 warn!("Fail to clean up temporary dir {:?} because {err}", self.0);

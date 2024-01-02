@@ -1,5 +1,7 @@
 use std::fmt::{self, Debug, Display};
 use std::net::Ipv4Addr;
+use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 
 use tracing::info;
 
@@ -163,7 +165,7 @@ impl Runner {
             image,
             image_ref,
             id,
-            detached: false,
+            detached: Arc::new(AtomicBool::new(false)),
         })
     }
 

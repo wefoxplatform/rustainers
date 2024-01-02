@@ -11,6 +11,7 @@ use crate::Network;
 /// * `wait_interval`: wait until re-check a container state (default 500ms)
 /// * `remove`: if we remove the container after the stop (`--rm` flag, default false)
 /// * `name`: provide the container name (default unnamed, use the runner name)
+/// * `network`: define the network
 #[derive(Debug, Clone, TypedBuilder)]
 #[builder(field_defaults(default, setter(prefix = "with_")))]
 pub struct RunOption {
