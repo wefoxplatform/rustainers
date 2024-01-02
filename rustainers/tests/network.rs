@@ -5,7 +5,7 @@ use ulid::Ulid;
 
 mod common;
 pub use self::common::*;
-use self::images::WebServer;
+use self::images::InternalWebServer;
 
 #[rstest]
 #[tokio::test]
@@ -21,7 +21,9 @@ async fn should_work_with_network(runner: &Runner) -> anyhow::Result<()> {
         .with_remove(true)
         .with_network(network.clone()) // network
         .build();
-    let _container = runner.start_with_options(WebServer, options).await?;
+    let _container = runner
+        .start_with_options(InternalWebServer, options)
+        .await?;
 
     let url = format!("http://web-server_{id}:80");
     let result = images::curl(
@@ -53,7 +55,9 @@ async fn should_work_with_network_ip(runner: &Runner) -> anyhow::Result<()> {
         .with_remove(true)
         .with_network(network.clone()) // network
         .build();
-    let container = runner.start_with_options(WebServer, options).await?;
+    let container = runner
+        .start_with_options(InternalWebServer, options)
+        .await?;
 
     let network_ip = runner.network_ip(&container, &network).await?;
     let url = format!("http://{network_ip}:80");
@@ -86,7 +90,9 @@ async fn should_not_work_without_network(runner: &Runner) -> anyhow::Result<()> 
         .with_remove(true)
         .with_network(network.clone()) // network
         .build();
-    let _container = runner.start_with_options(WebServer, options).await?;
+    let _container = runner
+        .start_with_options(InternalWebServer, options)
+        .await?;
 
     let url = format!("http://web-server_{id}:80");
     let result = images::curl(

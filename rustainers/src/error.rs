@@ -1,6 +1,6 @@
 use std::num::ParseIntError;
 
-/// Version parsing error
+/// Version parsing errors
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum VersionError {
@@ -25,7 +25,7 @@ pub enum VersionError {
     InvalidPatchVersion(ParseIntError),
 }
 
-/// Id error
+/// Id errors
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum IdError {

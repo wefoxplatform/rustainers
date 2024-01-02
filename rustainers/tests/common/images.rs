@@ -1,14 +1,16 @@
+use std::process::Command;
+
 use rustainers::runner::{RunOption, Runner};
 use rustainers::{
-    ContainerStatus, HealthCheck, ImageName, RunnableContainer, RunnableContainerBuilder,
-    ToRunnableContainer, WaitStrategy,
+    ContainerStatus, ExposedPort, HealthCheck, ImageName, RunnableContainer,
+    RunnableContainerBuilder, ToRunnableContainer, WaitStrategy,
 };
 
-// A web server
+// A web server only accessible when sharing the same network
 #[derive(Debug)]
-pub struct WebServer;
+pub struct InternalWebServer;
 
-impl ToRunnableContainer for WebServer {
+impl ToRunnableContainer for InternalWebServer {
     fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
         builder
             .with_image(ImageName::new("nginx"))

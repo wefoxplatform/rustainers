@@ -46,33 +46,17 @@ impl Minio {
     /// Set the image tag
     #[must_use]
     pub fn with_tag(self, tag: impl Into<String>) -> Self {
-        let Self {
-            mut image,
-            port,
-            console_port,
-        } = self;
+        let Self { mut image, .. } = self;
         image.set_tag(tag);
-        Self {
-            image,
-            port,
-            console_port,
-        }
+        Self { image, ..self }
     }
 
     /// Set the image digest
     #[must_use]
     pub fn with_digest(self, digest: impl Into<String>) -> Self {
-        let Self {
-            mut image,
-            port,
-            console_port,
-        } = self;
+        let Self { mut image, .. } = self;
         image.set_digest(digest);
-        Self {
-            image,
-            port,
-            console_port,
-        }
+        Self { image, ..self }
     }
 }
 

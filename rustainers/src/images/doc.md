@@ -24,7 +24,7 @@ const NGINX_IMAGE: &ImageName = &ImageName::new("nginx");
 const PORT: u16 = 80;
 
 /// The NGinx image
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct Nginx {
     /// The image name
     image: ImageName,
@@ -65,3 +65,8 @@ impl ToRunnableContainer for Nginx {
     }
 }
 ```
+
+⚠️ WARNING: when you use an `ExposedPort`, do not make your image clonable.
+The `ExposedPort` use [__Interior mutability__](https://doc.rust-lang.org/reference/interior-mutability.html).
+If you clone this exposed port, it will not create a new unassign port, but share the same one.
+If you really need the `Clone`, implement the trait manually with creating new `ExposedPort` instead of clone it.
