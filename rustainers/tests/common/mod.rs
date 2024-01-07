@@ -15,6 +15,7 @@ pub fn init_tracing(level: Level) {
         .with_span_events(FmtSpan::NONE)
         .with_timer(time::uptime())
         .with_max_level(level)
+        .with_test_writer()
         .init();
 }
 

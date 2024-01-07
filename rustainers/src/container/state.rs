@@ -34,6 +34,9 @@ pub enum ContainerStatus {
 
     /// Dead
     Dead,
+
+    /// Removing
+    Removing,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]

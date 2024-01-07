@@ -46,3 +46,16 @@ pub enum IdError {
     #[error("Id '{0}' is too long (maximum length is 64)")]
     TooLong(String),
 }
+
+/// Volume errors
+#[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
+pub enum VolumeError {
+    /// Empty
+    #[error("Volume name should not been empty")]
+    EmptyVolumeName,
+
+    /// I/O error
+    #[error(transparent)]
+    IOError(#[from] std::io::Error),
+}

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use typed_builder::TypedBuilder;
 
-use crate::Network;
+use crate::{Network, Volume};
 
 /// Run options
 ///
@@ -12,6 +12,7 @@ use crate::Network;
 /// * `remove`: if we remove the container after the stop (`--rm` flag, default false)
 /// * `name`: provide the container name (default unnamed, use the runner name)
 /// * `network`: define the network
+/// * `volumes`: set some volumes
 #[derive(Debug, Clone, TypedBuilder)]
 #[builder(field_defaults(default, setter(prefix = "with_")))]
 pub struct RunOption {
@@ -29,6 +30,11 @@ pub struct RunOption {
     /// The network
     #[builder(default, setter(into))]
     pub(crate) network: Network,
+
+    /// Volumes
+    #[builder(default, setter(transform = |args: impl IntoIterator<Item = impl Into<Volume>>| args.into_iter().map(Into::into).collect()))]
+    pub(crate) volumes: Vec<Volume>,
+    // TODO env. var.
 }
 
 impl RunOption {

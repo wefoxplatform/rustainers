@@ -9,7 +9,7 @@ use tracing::{info, trace, warn};
 use crate::cmd::Cmd;
 use crate::{
     ContainerHealth, ContainerId, ContainerNetwork, ContainerProcess, ContainerState,
-    ContainerStatus, Network, Port, RunnableContainer, WaitStrategy,
+    ContainerStatus, Network, Port, RunnableContainer, Volume, WaitStrategy,
 };
 
 use super::{ContainerError, RunOption};
@@ -43,6 +43,14 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         Ok(())
     }
 
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn create_volume(&self, name: &str) -> Result<(), ContainerError> {
+        let mut cmd = self.command();
+        cmd.push_args(["volume", "create", name]);
+        cmd.status().await?;
+        Ok(())
+    }
+
     #[tracing::instrument(level = "debug", skip(self, image), fields(runner = %self, image = %image))]
     async fn create_and_start(
         &self,
@@ -50,6 +58,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         remove: bool,
         name: Option<&str>,
         network: &Network,
+        volumes: &[Volume],
     ) -> Result<ContainerId, ContainerError> {
         let mut cmd = self.command();
         cmd.push_args(["run", "--detach"]);
@@ -85,7 +94,13 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         let network = network.cmd_arg();
         cmd.push_arg(network.as_ref());
 
-        // descriptor (name:tag or other alternatives)
+        // Volumes
+        for volume in volumes {
+            cmd.push_arg("--mount");
+            cmd.push_arg(&volume.mount_arg()?);
+        }
+
+        // Descriptor (name:tag or other alternatives)
         cmd.push_arg(descriptor);
 
         // command
@@ -188,6 +203,9 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
                         break;
                     }
                 }
+                WaitStrategy::None => {
+                    break;
+                }
             }
 
             tokio::time::sleep(interval).await;
@@ -262,6 +280,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             remove,
             name,
             network,
+            volumes,
         } = options;
 
         // Container name
@@ -292,12 +311,12 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             // Need cleanup before restarting the container
             Some((ContainerStatus::Dead, id)) => {
                 self.rm(id).await?;
-                self.create_and_start(image, remove, container_name, &network)
+                self.create_and_start(image, remove, container_name, &network, &volumes)
                     .await?
             }
             // Need to create and start the container
-            Some((ContainerStatus::Unknown, _)) | None => {
-                self.create_and_start(image, remove, container_name, &network)
+            Some((ContainerStatus::Unknown | ContainerStatus::Removing, _)) | None => {
+                self.create_and_start(image, remove, container_name, &network, &volumes)
                     .await?
             }
         };
