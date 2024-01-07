@@ -13,6 +13,9 @@ pub enum WaitStrategy {
 
     /// Wait for the container state
     State(ContainerStatus),
+
+    /// Do not wait
+    None,
     // TODO Socket until available (from container)
     // nc -z localhost 9092 || exit 1
 

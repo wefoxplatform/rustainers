@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use tracing::info;
 
-use crate::{Container, Network, RunnableContainer, ToRunnableContainer};
+use crate::{Container, Network, RunnableContainer, ToRunnableContainer, VolumeName};
 
 mod docker;
 pub use self::docker::Docker;
@@ -169,7 +169,7 @@ impl Runner {
         })
     }
 
-    /// Execute a command into the container
+    /// Create a network
     ///
     /// # Errors
     ///
@@ -188,6 +188,27 @@ impl Runner {
         })?;
 
         Ok(Network::Custom(name))
+    }
+
+    /// Create a container volume
+    ///
+    /// # Errors
+    ///
+    /// Could fail if we cannot execute the command
+    pub async fn create_volume(&self, name: impl Into<String>) -> Result<VolumeName, RunnerError> {
+        let name = name.into();
+        match self {
+            Self::Docker(runner) => runner.create_volume(&name).await,
+            Self::Podman(runner) => runner.create_volume(&name).await,
+            Self::Nerdctl(runner) => runner.create_volume(&name).await,
+        }
+        .map_err(|source| RunnerError::CreateVolumeError {
+            runner: self.clone(),
+            name: name.clone(),
+            source: Box::new(source),
+        })?;
+
+        Ok(VolumeName(name))
     }
 
     /// Get the container IP for a custom network

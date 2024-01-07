@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::cmd::CommandError;
 use crate::version::Version;
-use crate::{ContainerId, IdError, Network, Port, RunnableContainer};
+use crate::{ContainerId, IdError, Network, Port, RunnableContainer, VolumeError};
 
 use super::Runner;
 
@@ -53,12 +53,23 @@ pub enum RunnerError {
         source: Box<ContainerError>,
     },
 
-    /// Fail to exec a container
+    /// Fail to create a network
     #[error("Fail to create network '{name}' because {source}\nrunner: {runner}")]
     CreateNetworkError {
         /// The runner
         runner: Runner,
         /// The network name
+        name: String,
+        /// The source error
+        source: Box<ContainerError>,
+    },
+
+    /// Fail to create a volume
+    #[error("Fail to create volume'{name}' because {source}\nrunner: {runner}")]
+    CreateVolumeError {
+        /// The runner
+        runner: Runner,
+        /// The volume name
         name: String,
         /// The source error
         source: Box<ContainerError>,
@@ -168,4 +179,8 @@ pub enum ContainerError {
     /// Id error
     #[error(transparent)]
     IdError(#[from] IdError),
+
+    /// Volume error
+    #[error(transparent)]
+    VolumeError(#[from] VolumeError),
 }
