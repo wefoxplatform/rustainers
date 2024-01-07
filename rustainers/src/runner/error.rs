@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::cmd::CommandError;
 use crate::version::Version;
-use crate::{ContainerId, IdError, Network, Port, RunnableContainer};
+use crate::{ContainerId, IdError, Network, Port, RunnableContainer, VolumeError};
 
 use super::Runner;
 
@@ -168,4 +168,8 @@ pub enum ContainerError {
     /// Id error
     #[error(transparent)]
     IdError(#[from] IdError),
+
+    /// Volume error
+    #[error(transparent)]
+    VolumeError(#[from] VolumeError),
 }

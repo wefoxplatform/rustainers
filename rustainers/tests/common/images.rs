@@ -50,3 +50,41 @@ impl ToRunnableContainer for Curl {
             .build()
     }
 }
+
+// A web server accessible from host
+#[derive(Debug)]
+pub struct WebServer(ExposedPort);
+
+impl Default for WebServer {
+    fn default() -> Self {
+        Self(ExposedPort::new(80))
+    }
+}
+
+impl ToRunnableContainer for WebServer {
+    fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
+        builder
+            .with_image(ImageName::new("nginx"))
+            .with_port_mappings([self.0.clone()])
+            .with_wait_strategy(
+                HealthCheck::builder()
+                    .with_command("curl -sf http://localhost") //DevSkim: ignore DS137138
+                    .build(),
+            )
+            .build()
+    }
+}
+
+impl WebServer {
+    // Container path that contains the static HTML pages
+    pub const STATIC_HTML: &'static str = "/usr/share/nginx/html";
+
+    /// Get the text content
+    pub async fn get(&self, path: &str) -> anyhow::Result<String> {
+        let port = self.0.host_port().await?;
+        let url = format!("http://localhost:{port}/{}", path.trim_start_matches('/')); //DevSkim: ignore DS137138
+        let out = Command::new("curl").arg(&url).output()?;
+        let result = String::from_utf8_lossy(&out.stdout);
+        Ok(result.to_string())
+    }
+}
