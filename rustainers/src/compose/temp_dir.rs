@@ -155,7 +155,7 @@ impl TemporaryDirectory {
     ///
     /// A detached [`TemporaryDirectory`] is not removed during drop.
     pub fn detach(&self) {
-        self.1.store(true, Ordering::Relaxed);
+        self.1.store(true, Ordering::Release);
     }
 }
 
@@ -167,7 +167,7 @@ impl AsRef<Path> for TemporaryDirectory {
 
 impl Drop for TemporaryDirectory {
     fn drop(&mut self) {
-        let detached = self.1.load(Ordering::Relaxed);
+        let detached = self.1.load(Ordering::Acquire);
         if !detached && self.0.exists() {
             if let Err(err) = std::fs::remove_dir_all(&self.0) {
                 warn!("Fail to clean up temporary dir {:?} because {err}", self.0);

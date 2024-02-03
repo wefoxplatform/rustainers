@@ -67,7 +67,7 @@ where
     ///
     /// A detached container won't be stopped during the drop.
     pub fn detach(&self) {
-        self.detached.store(true, Ordering::Relaxed);
+        self.detached.store(true, Ordering::Release);
     }
 }
 
@@ -87,7 +87,7 @@ where
     I: ToRunnableContainer,
 {
     fn drop(&mut self) {
-        let detached = self.detached.load(Ordering::Relaxed);
+        let detached = self.detached.load(Ordering::Acquire);
         if detached {
             info!("Detached container {self} is NOT stopped");
             return;
