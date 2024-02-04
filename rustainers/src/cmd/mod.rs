@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt::{self, Display};
 use std::path::Path;
 use std::process::{ExitStatus, Output};
@@ -178,15 +179,19 @@ impl<'a> Cmd<'a> {
     }
 }
 
+pub(crate) fn escape_arg(arg: &str) -> Cow<'_, str> {
+    if arg.contains(' ') {
+        Cow::Owned(format!("\"{arg}\""))
+    } else {
+        Cow::Borrowed(arg)
+    }
+}
+
 impl<'a> Display for Cmd<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.command)?;
         for arg in &self.args {
-            let arg = if arg.contains(' ') {
-                format!("\"{arg}\"")
-            } else {
-                arg.to_string()
-            };
+            let arg = escape_arg(arg);
             write!(f, " {arg}")?;
         }
         Ok(())

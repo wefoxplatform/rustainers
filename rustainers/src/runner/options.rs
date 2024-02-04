@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use indexmap::IndexMap;
 use typed_builder::TypedBuilder;
 
 use crate::{Network, Volume};
@@ -13,6 +14,7 @@ use crate::{Network, Volume};
 /// * `name`: provide the container name (default unnamed, use the runner name)
 /// * `network`: define the network
 /// * `volumes`: set some volumes
+/// * `env`: set some environment variables
 #[derive(Debug, Clone, TypedBuilder)]
 #[builder(field_defaults(default, setter(prefix = "with_")))]
 pub struct RunOption {
@@ -34,7 +36,10 @@ pub struct RunOption {
     /// Volumes
     #[builder(default, setter(transform = |args: impl IntoIterator<Item = impl Into<Volume>>| args.into_iter().map(Into::into).collect()))]
     pub(crate) volumes: Vec<Volume>,
-    // TODO env. var.
+
+    /// The environment variables
+    #[builder(setter(transform = |args: impl IntoIterator<Item = (impl Into<String>, impl Into<String>)>| args.into_iter().map(|(k,v)| (k.into(), v.into())).collect()))]
+    pub(crate) env: IndexMap<String, String>,
 }
 
 impl RunOption {
