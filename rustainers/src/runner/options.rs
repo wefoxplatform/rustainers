@@ -40,6 +40,14 @@ pub struct RunOption {
     /// The environment variables
     #[builder(setter(transform = |args: impl IntoIterator<Item = (impl Into<String>, impl Into<String>)>| args.into_iter().map(|(k,v)| (k.into(), v.into())).collect()))]
     pub(crate) env: IndexMap<String, String>,
+
+    /// The command (override the runable command)
+    #[builder(default, setter(transform = |args: impl IntoIterator<Item = impl Into<String>>| Some(args.into_iter().map(Into::into).collect())))]
+    pub(crate) command: Option<Vec<String>>,
+
+    /// The entrypoint (override the image entrypoint)
+    #[builder(default, setter(into, strip_option))]
+    pub(crate) entrypoint: Option<String>,
 }
 
 impl RunOption {

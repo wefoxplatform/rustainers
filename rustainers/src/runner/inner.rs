@@ -10,7 +10,8 @@ use tracing::{info, trace, warn};
 use crate::cmd::Cmd;
 use crate::{
     ContainerHealth, ContainerId, ContainerNetwork, ContainerProcess, ContainerState,
-    ContainerStatus, Network, Port, RunnableContainer, Volume, WaitStrategy,
+    ContainerStatus, ExposedPort, HealthCheck, Network, Port, RunnableContainer, Volume,
+    WaitStrategy,
 };
 
 use super::{ContainerError, RunOption};
@@ -52,70 +53,66 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         Ok(())
     }
 
-    #[tracing::instrument(level = "debug", skip(self, image), fields(runner = %self, image = %image))]
+    #[tracing::instrument(level = "debug", skip(self, option), fields(runner = %self))]
     async fn create_and_start(
         &self,
-        image: &RunnableContainer,
-        remove: bool,
-        name: Option<&str>,
-        network: &Network,
-        volumes: &[Volume],
-        env: &IndexMap<String, String>,
+        option: CreateAndStartOption<'_>,
     ) -> Result<ContainerId, ContainerError> {
         let mut cmd = self.command();
         cmd.push_args(["run", "--detach"]);
-        let descriptor = image.descriptor();
 
-        // --rm
-        if remove {
+        // Remove
+        if option.remove {
             cmd.push_arg("--rm");
         }
 
-        // --name
-        if let Some(name) = name {
+        // Name
+        if let Some(name) = option.name {
             cmd.push_args(["--name", name]);
         }
 
-        // --env
-        for (key, value) in &image.env {
-            cmd.push_args([String::from("--env"), format!("{key}={value}")]);
+        // Env. vars.
+        for (key, value) in option.env {
+            let v = format!("{key}={value}");
+            cmd.push_args(["--env", &v]);
         }
 
-        // --publish
-        for port_mapping in &image.port_mappings {
+        // Published ports
+        for port_mapping in option.ports {
             let publish = port_mapping.to_publish().await;
             cmd.push_args(["--publish", &publish]);
         }
 
-        // health check args
-        if let WaitStrategy::CustomHealthCheck(hc) = &image.wait_strategy {
+        // Health check args.
+        if let Some(hc) = &option.health_check {
             cmd.push_args(hc.to_vec());
         }
 
         // Network
-        let network = network.cmd_arg();
+        let network = option.network.cmd_arg();
         cmd.push_arg(network.as_ref());
 
         // Volumes
-        for volume in volumes {
+        for volume in option.volumes {
             cmd.push_arg("--mount");
             cmd.push_arg(&volume.mount_arg()?);
         }
 
-        // Env. var.
-        for (key, value) in env {
-            let arg = format!("{key}={value}");
-            cmd.push_args(["--env", &arg]);
+        // Entrypoint
+        if let Some(entrypoint) = option.entrypoint {
+            cmd.push_args(["--entrypoint", entrypoint]);
         }
 
         // Descriptor (name:tag or other alternatives)
+        let descriptor = &option.descriptor;
         cmd.push_arg(descriptor);
 
-        // command
-        cmd.push_args(&image.command);
+        // Command
+        let command_args = option.command;
+        cmd.push_args(command_args);
 
         // Run
-        info!(%image, "🚀 Launching container");
+        info!(image = %descriptor, "🚀 Launching container");
         let stdout = cmd.result().await?;
         let id = stdout.trim().parse::<ContainerId>()?;
 
@@ -283,17 +280,8 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         image: &mut RunnableContainer,
         options: RunOption,
     ) -> Result<ContainerId, ContainerError> {
-        let RunOption {
-            wait_interval,
-            remove,
-            name,
-            network,
-            volumes,
-            env,
-        } = options;
-
         // Container name
-        let name = name.as_deref();
+        let name = options.name.as_deref();
         let container_name = image.container_name.as_deref().or(name);
         let container = if let Some(name) = container_name {
             self.ps(name).await?.map(|it| (it.state, it.id))
@@ -320,18 +308,18 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             // Need cleanup before restarting the container
             Some((ContainerStatus::Dead, id)) => {
                 self.rm(id).await?;
-                self.create_and_start(image, remove, container_name, &network, &volumes, &env)
+                self.create_and_start(CreateAndStartOption::new(image, &options))
                     .await?
             }
             // Need to create and start the container
             Some((ContainerStatus::Unknown | ContainerStatus::Removing, _)) | None => {
-                self.create_and_start(image, remove, container_name, &network, &volumes, &env)
+                self.create_and_start(CreateAndStartOption::new(image, &options))
                     .await?
             }
         };
 
         // Wait
-        self.wait_ready(id, &image.wait_strategy, wait_interval)
+        self.wait_ready(id, &image.wait_strategy, options.wait_interval)
             .await?;
 
         // Port Mapping
@@ -380,6 +368,60 @@ fn parse_port(s: &str) -> Option<Port> {
         .filter_map(|it| it.parse::<SocketAddr>().ok())
         .map(|it| Port(it.port()))
         .next()
+}
+
+pub(crate) struct CreateAndStartOption<'a> {
+    descriptor: String,
+    health_check: Option<&'a HealthCheck>,
+    ports: &'a [ExposedPort],
+    remove: bool,
+    name: Option<&'a str>,
+    network: &'a Network,
+    volumes: &'a [Volume],
+    env: IndexMap<&'a str, &'a str>,
+    command: &'a [String],
+    entrypoint: Option<&'a str>,
+}
+
+impl<'a> CreateAndStartOption<'a> {
+    pub(super) fn new<'b: 'a, 'c: 'a>(image: &'b RunnableContainer, option: &'c RunOption) -> Self {
+        let descriptor = image.descriptor();
+        let health_check = if let WaitStrategy::CustomHealthCheck(hc) = &image.wait_strategy {
+            Some(hc)
+        } else {
+            None
+        };
+        let ports = &image.port_mappings;
+        let remove = option.remove;
+        let name = option.name();
+        let network = &option.network;
+        let volumes = option.volumes.as_slice();
+        let env = image
+            .env
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .chain(option.env.iter().map(|(k, v)| (k.as_str(), v.as_str())))
+            .collect();
+        let command = if let Some(cmd) = &option.command {
+            cmd.as_slice()
+        } else {
+            image.command.as_slice()
+        };
+        let entrypoint = option.entrypoint.as_deref();
+
+        Self {
+            descriptor,
+            health_check,
+            ports,
+            remove,
+            name,
+            network,
+            volumes,
+            env,
+            command,
+            entrypoint,
+        }
+    }
 }
 
 #[cfg(test)]
