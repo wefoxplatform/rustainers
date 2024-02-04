@@ -266,7 +266,7 @@ impl Runner {
         &self,
         container: &Container<I>,
         exec_command: impl IntoIterator<Item = S> + Debug,
-    ) -> Result<(), RunnerError>
+    ) -> Result<String, RunnerError>
     where
         S: Into<String>,
         I: ToRunnableContainer,

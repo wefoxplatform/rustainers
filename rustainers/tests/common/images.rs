@@ -139,7 +139,8 @@ impl ToRunnableContainer for CopyFile {
 // docker container create --name dummy -v myvolume:/root hello-world
 // docker cp c:\myfolder\myfile.txt dummy:/root/myfile.txt
 // docker rm dummy
-// ```
+/// ```
+
 pub async fn copy_file_to_volume(
     runner: &Runner,
     volume: VolumeName,
@@ -159,4 +160,18 @@ pub async fn copy_file_to_volume(
     info!("File {file:?} copied into {volume}");
 
     Ok(())
+}
+
+#[derive(Debug)]
+pub struct Alpine;
+
+impl ToRunnableContainer for Alpine {
+    fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
+        builder
+            .with_image(ImageName::new("alpine"))
+            .with_wait_strategy(WaitStrategy::None)
+            // keep the container alive
+            .with_command(["tail", "-f", "/dev/null"])
+            .build()
+    }
 }

@@ -3,6 +3,7 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use async_trait::async_trait;
+use indexmap::IndexMap;
 use serde::de::DeserializeOwned;
 use tracing::{info, trace, warn};
 
@@ -59,6 +60,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         name: Option<&str>,
         network: &Network,
         volumes: &[Volume],
+        env: &IndexMap<String, String>,
     ) -> Result<ContainerId, ContainerError> {
         let mut cmd = self.command();
         cmd.push_args(["run", "--detach"]);
@@ -98,6 +100,12 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         for volume in volumes {
             cmd.push_arg("--mount");
             cmd.push_arg(&volume.mount_arg()?);
+        }
+
+        // Env. var.
+        for (key, value) in env {
+            let arg = format!("{key}={value}");
+            cmd.push_args(["--env", &arg]);
         }
 
         // Descriptor (name:tag or other alternatives)
@@ -281,6 +289,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             name,
             network,
             volumes,
+            env,
         } = options;
 
         // Container name
@@ -311,12 +320,12 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             // Need cleanup before restarting the container
             Some((ContainerStatus::Dead, id)) => {
                 self.rm(id).await?;
-                self.create_and_start(image, remove, container_name, &network, &volumes)
+                self.create_and_start(image, remove, container_name, &network, &volumes, &env)
                     .await?
             }
             // Need to create and start the container
             Some((ContainerStatus::Unknown | ContainerStatus::Removing, _)) | None => {
-                self.create_and_start(image, remove, container_name, &network, &volumes)
+                self.create_and_start(image, remove, container_name, &network, &volumes, &env)
                     .await?
             }
         };
@@ -335,7 +344,11 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     }
 
     #[tracing::instrument(skip(self, id), fields(runner = %self, id = %id))]
-    async fn exec(&self, id: ContainerId, exec_command: Vec<String>) -> Result<(), ContainerError> {
+    async fn exec(
+        &self,
+        id: ContainerId,
+        exec_command: Vec<String>,
+    ) -> Result<String, ContainerError> {
         let mut cmd = self.command();
         cmd.push_arg("exec");
         cmd.push_arg(id);
@@ -344,7 +357,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         let stdout = cmd.result().await?;
         info!(%id, "🐚 Executed\n{stdout}",);
 
-        Ok(())
+        Ok(stdout)
     }
 
     #[tracing::instrument(skip(self, id), fields(runner = %self, id = %id))]
