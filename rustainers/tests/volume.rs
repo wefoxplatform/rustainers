@@ -7,8 +7,6 @@ use rustainers::compose::{TemporaryDirectory, TemporaryFile};
 use rustainers::runner::{RunOption, Runner};
 
 mod common;
-use crate::images::copy_file_to_volume;
-
 pub use self::common::*;
 use self::images::WebServer;
 
@@ -55,7 +53,9 @@ async fn should_work_with_volume(runner: &Runner) -> anyhow::Result<()> {
     let volume_name = runner.create_volume(&name).await?;
 
     // Copy page to volume
-    copy_file_to_volume(runner, volume_name.clone(), "tests/assets/index.html").await?;
+    runner
+        .copy_to_volume(volume_name.clone(), "tests/assets/index.html")
+        .await?;
 
     let mut volume = Volume::container_volume(volume_name.clone(), WebServer::STATIC_HTML);
     volume.read_only();

@@ -20,7 +20,7 @@ const COMPOSE_MINIMAL_VERSION: Version = Version::new(1, 0);
 /// It requires podman client v4.0+
 ///
 /// podman-compose is supported if v1.0+
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Podman {
     /// The client version
     pub version: Version,

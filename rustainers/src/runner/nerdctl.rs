@@ -15,7 +15,7 @@ const MINIMAL_VERSION: Version = Version::new(1, 5);
 /// This runner use the nerdctl CLI
 ///
 /// It requires nerdctl client v1.5+
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Nerdctl {
     /// The nerdctl version
     pub version: Version,

@@ -30,7 +30,6 @@ pub struct ComposeRunOption {
     /// The compose file
     #[builder(setter(strip_option))]
     pub(crate) compose_file: Option<PathBuf>,
-    // TODO Wait timeout
 }
 
 impl Default for ComposeRunOption {

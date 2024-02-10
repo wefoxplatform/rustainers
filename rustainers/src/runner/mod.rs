@@ -30,7 +30,7 @@ pub use self::options::*;
 /// Use the [`Runner::auto`], [`Runner::docker`], [`Runner::podman`], [`Runner::nerdctl`] functions
 ///  to create your runner
 // Note: we do not derive Copy to avoid a future breaking-change if add another implementation
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum Runner {
     /// Docker
@@ -211,6 +211,19 @@ impl Runner {
         Ok(VolumeName(name))
     }
 
+    fn guard_runner<I>(&self, container: &Container<I>) -> Result<(), RunnerError>
+    where
+        I: ToRunnableContainer,
+    {
+        if &container.runner != self {
+            return Err(RunnerError::DifferentRunner {
+                runner: self.clone(),
+                container_runner: Box::new(container.runner.clone()),
+            });
+        }
+        Ok(())
+    }
+
     /// Get the container IP for a custom network
     ///
     /// # Errors
@@ -226,6 +239,8 @@ impl Runner {
     where
         I: ToRunnableContainer,
     {
+        self.guard_runner(container)?;
+
         let id = container.id;
         let Some(net) = network.name() else {
             return Err(RunnerError::ExpectedNetworkNameError {
@@ -271,6 +286,8 @@ impl Runner {
         S: Into<String>,
         I: ToRunnableContainer,
     {
+        self.guard_runner(container)?;
+
         let id = container.id;
         let exec_command = exec_command.into_iter().map(Into::into).collect();
         match self {
@@ -296,6 +313,8 @@ impl Runner {
     where
         I: ToRunnableContainer,
     {
+        self.guard_runner(container)?;
+
         let id = container.id;
         match self {
             Self::Docker(runner) => runner.stop(id),
