@@ -1,13 +1,10 @@
-use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use anyhow::bail;
 use rustainers::runner::{RunOption, Runner};
 use rustainers::{
     ContainerStatus, ExposedPort, HealthCheck, ImageName, RunnableContainer,
-    RunnableContainerBuilder, ToRunnableContainer, Volume, VolumeName, WaitStrategy,
+    RunnableContainerBuilder, ToRunnableContainer, WaitStrategy,
 };
-use tracing::info;
 
 // A web server only accessible when sharing the same network
 #[derive(Debug)]
@@ -89,89 +86,5 @@ impl WebServer {
         let out = Command::new("curl").arg(&url).output()?;
         let result = String::from_utf8_lossy(&out.stdout);
         Ok(result.to_string())
-    }
-}
-
-// A helper image to copy file into a named volume
-#[derive(Debug)]
-struct CopyFile {
-    parent: PathBuf,
-    file_name: String,
-}
-
-impl CopyFile {
-    fn build(path: &Path) -> anyhow::Result<Self> {
-        // TODO maybe relaxe this constraint to allow copy a folder ?
-        if !path.is_file() {
-            bail!("Expected {path:?} to be a file");
-        }
-        if !path.exists() {
-            bail!("Expected {path:?} to exists");
-        }
-        let Some(parent) = path.parent() else {
-            bail!("Expected {path:?} to have a parent");
-        };
-        let Some(file_name) = path.file_name().and_then(|it| it.to_str()) else {
-            bail!("Expected {path:?} to have a file name");
-        };
-
-        let parent = parent.to_path_buf();
-        let file_name = file_name.to_string();
-        let image = Self { parent, file_name };
-        dbg!(&image);
-        Ok(image)
-    }
-}
-
-impl ToRunnableContainer for CopyFile {
-    fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
-        let source = format!("/source/{}", self.file_name);
-        builder
-            .with_image(ImageName::new("alpine"))
-            .with_wait_strategy(WaitStrategy::None)
-            .with_command(["cp", &source, "/dest"])
-            .build()
-    }
-}
-
-// TODO maybe create a more general copy_to_volume function in the lib
-// ```sh
-// docker container create --name dummy -v myvolume:/root hello-world
-// docker cp c:\myfolder\myfile.txt dummy:/root/myfile.txt
-// docker rm dummy
-/// ```
-
-pub async fn copy_file_to_volume(
-    runner: &Runner,
-    volume: VolumeName,
-    file: impl AsRef<Path>,
-) -> anyhow::Result<()> {
-    let file = file.as_ref();
-    let image = CopyFile::build(file)?;
-    let parent = image.parent.clone();
-
-    let options = RunOption::builder()
-        .with_volumes([
-            Volume::bind_mount(parent, "/source"),
-            Volume::container_volume(volume.clone(), "/dest"),
-        ])
-        .build();
-    let _container = runner.start_with_options(image, options).await?;
-    info!("File {file:?} copied into {volume}");
-
-    Ok(())
-}
-
-#[derive(Debug)]
-pub struct Alpine;
-
-impl ToRunnableContainer for Alpine {
-    fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
-        builder
-            .with_image(ImageName::new("alpine"))
-            .with_wait_strategy(WaitStrategy::None)
-            // keep the container alive
-            .with_command(["tail", "-f", "/dev/null"])
-            .build()
     }
 }

@@ -11,3 +11,6 @@ pub use self::redis::*;
 
 mod mongo;
 pub use self::mongo::*;
+
+mod alpine;
+pub use self::alpine::*;

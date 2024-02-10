@@ -20,7 +20,7 @@ const COMPOSE_MINIMAL_VERSION: Version = Version::new(2, 10);
 /// It requires docker client v1.20+
 ///
 /// Docker compose should be v2.10+
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Docker {
     /// The docker client version
     pub version: Version,

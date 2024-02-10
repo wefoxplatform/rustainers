@@ -4,11 +4,11 @@ use assert2::check;
 use rstest::rstest;
 use ulid::Ulid;
 
+use rustainers::images::Alpine;
 use rustainers::runner::{RunOption, Runner};
 
 mod common;
 pub use self::common::*;
-use crate::images::Alpine;
 
 #[rstest]
 #[tokio::test]

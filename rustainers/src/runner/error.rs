@@ -133,6 +133,15 @@ pub enum RunnerError {
         /// The source error
         source: Box<crate::compose::ComposeError>,
     },
+
+    /// Different runner
+    #[error("The operation need to be done with the same runner\ncurrent: {runner}\ncontainer runner: {container_runner}")]
+    DifferentRunner {
+        /// The current runner
+        runner: Runner,
+        /// The container runner
+        container_runner: Box<Runner>,
+    },
 }
 
 /// Errors that could happen during creation of a container
