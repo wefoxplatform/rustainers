@@ -66,11 +66,7 @@ impl ToRunnableContainer for WebServer {
         builder
             .with_image(ImageName::new("nginx"))
             .with_port_mappings([self.0.clone()])
-            .with_wait_strategy(
-                HealthCheck::builder()
-                    .with_command("curl -sf http://localhost") //DevSkim: ignore DS137138
-                    .build(),
-            )
+            .with_wait_strategy(WaitStrategy::http("/"))
             .build()
     }
 }

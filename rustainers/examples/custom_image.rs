@@ -4,8 +4,8 @@ use tracing::{info, Level};
 
 use rustainers::runner::{RunOption, Runner};
 use rustainers::{
-    ExposedPort, HealthCheck, ImageName, RunnableContainer, RunnableContainerBuilder,
-    ToRunnableContainer,
+    ExposedPort, ImageName, RunnableContainer, RunnableContainerBuilder, ToRunnableContainer,
+    WaitStrategy,
 };
 
 mod common;
@@ -56,11 +56,7 @@ impl ToRunnableContainer for Nginx {
     fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
         builder
             .with_image(self.image.clone())
-            .with_wait_strategy(
-                HealthCheck::builder()
-                    .with_command("curl -sf http://localhost") //DevSkim: ignore DS137138
-                    .build(),
-            )
+            .with_wait_strategy(WaitStrategy::http("/"))
             .with_port_mappings([self.port.clone()])
             .build()
     }

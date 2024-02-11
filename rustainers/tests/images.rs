@@ -62,8 +62,12 @@ async fn test_image_mongo(runner: &Runner) -> anyhow::Result<()> {
 
 #[rstest]
 #[tokio::test]
-#[ignore = "work with docker, but fail with podman"] // FIXME find a solution
 async fn test_run_in_multiple_tasks(runner: &Runner) -> anyhow::Result<()> {
+    if let Runner::Docker(_) = &runner {
+        // Work with docker, but fail with podman
+        // FIXME find a solution
+        return Ok(());
+    }
     let start = SystemTime::now();
     let mut set = JoinSet::new();
     let size = 20;
