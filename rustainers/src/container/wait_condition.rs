@@ -1,4 +1,9 @@
+use std::time::Duration;
+
 use crate::{ContainerStatus, HealthCheck, Port};
+
+/// Default port scan timeout (100ms)
+pub const SCAN_PORT_DEFAULT_TIMEOUT: Duration = Duration::from_millis(100);
 
 /// Wait strategies
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -24,11 +29,16 @@ pub enum WaitStrategy {
         container_port: Port,
     },
 
+    /// Wait until a socket is open
+    ScanPort {
+        /// The container port
+        container_port: Port,
+        /// The timeout for a try
+        timeout: Duration,
+    },
+
     /// Do not wait
     None,
-    // TODO Socket until available (from host)
-    // nc -z localhost 9092 || exit 1
-
     // TODO StdLog, ErrLog until match a regex
 }
 
@@ -76,6 +86,16 @@ impl WaitStrategy {
             https: true,
             path,
             container_port,
+        }
+    }
+
+    /// Wait for a port to be open using a default timeout
+    pub fn scan_port(container_port: impl Into<Port>) -> Self {
+        let container_port = container_port.into();
+        let timeout = SCAN_PORT_DEFAULT_TIMEOUT;
+        Self::ScanPort {
+            container_port,
+            timeout,
         }
     }
 }

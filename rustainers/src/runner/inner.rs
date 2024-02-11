@@ -1,10 +1,11 @@
 use std::fmt::{Debug, Display};
-use std::net::SocketAddr;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
 use async_trait::async_trait;
 use indexmap::IndexMap;
 use serde::de::DeserializeOwned;
+use tokio::net::TcpStream;
 use tracing::{debug, info, trace, warn};
 
 use crate::cmd::Cmd;
@@ -226,10 +227,34 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
                         warn!(%url,"Fail to get the URL, will retry later");
                         continue;
                     };
-                    if response.status().is_success() {
+                    let status = response.status();
+                    if status.is_success() {
+                        info!(%id, %status, "💚 {url} successful");
                         break;
                     }
-                    debug!(status= %response.status(), "Not yet ready, will retry later");
+                    debug!(%status, "{url} not yet ready, will retry later");
+                }
+                WaitStrategy::ScanPort {
+                    container_port,
+                    timeout,
+                } => {
+                    let Ok(host_port) = self.port(id, *container_port).await else {
+                        info!(%container_port,"Port not bind, will retry later");
+                        continue;
+                    };
+                    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), host_port.0);
+
+                    let scan =
+                        tokio::time::timeout(
+                            *timeout,
+                            async move { TcpStream::connect(addr).await },
+                        )
+                        .await;
+                    if let Ok(Ok(_)) = scan {
+                        info!(%id, %container_port, %host_port, "💚 port {container_port} available");
+                        break;
+                    }
+                    debug!(%id, %container_port, %host_port, "Port {container_port} not yet available, will retry later");
                 }
                 WaitStrategy::None => {
                     break;
