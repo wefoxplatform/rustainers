@@ -66,6 +66,8 @@ impl ToRunnableContainer for Nginx {
 }
 ```
 
+NOTE that you can also use another waiting strategy here: `.with_wait_strategy(WaitStrategy::http("/"))`
+
 ⚠️ WARNING: when you use an `ExposedPort`, do not make your image clonable.
 The `ExposedPort` use [__Interior mutability__](https://doc.rust-lang.org/reference/interior-mutability.html).
 If you clone this exposed port, it will not create a new unassign port, but share the same one.

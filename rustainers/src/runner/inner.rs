@@ -5,7 +5,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use indexmap::IndexMap;
 use serde::de::DeserializeOwned;
-use tracing::{info, trace, warn};
+use tracing::{debug, info, trace, warn};
 
 use crate::cmd::Cmd;
 use crate::{
@@ -192,7 +192,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         &self,
         id: ContainerId,
         wait_condition: &WaitStrategy,
-        interval: Duration,
+        interval: Duration, // TODO could have a more flexible type
     ) -> Result<(), ContainerError> {
         loop {
             match wait_condition {
@@ -207,6 +207,29 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
                         info!(%id, "💚 state {state} reached");
                         break;
                     }
+                }
+                WaitStrategy::HttpSuccess {
+                    https,
+                    path,
+                    container_port,
+                } => {
+                    let Ok(host_port) = self.port(id, *container_port).await else {
+                        info!(%container_port,"Port not bind, will retry later");
+                        continue;
+                    };
+                    let scheme = if *https { "https" } else { "http" };
+                    let url = format!(
+                        "{scheme}://127.0.0.1:{host_port}/{}",
+                        path.trim_start_matches('/')
+                    );
+                    let Ok(response) = reqwest::get(&url).await else {
+                        warn!(%url,"Fail to get the URL, will retry later");
+                        continue;
+                    };
+                    if response.status().is_success() {
+                        break;
+                    }
+                    debug!(status= %response.status(), "Not yet ready, will retry later");
                 }
                 WaitStrategy::None => {
                     break;
