@@ -1,8 +1,9 @@
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::process::Command;
 
 use rustainers::runner::{RunOption, Runner};
 use rustainers::{
-    ContainerStatus, ExposedPort, HealthCheck, ImageName, RunnableContainer,
+    ContainerStatus, ExposedPort, HealthCheck, ImageName, PortError, RunnableContainer,
     RunnableContainerBuilder, ToRunnableContainer, WaitStrategy,
 };
 
@@ -82,5 +83,36 @@ impl WebServer {
         let out = Command::new("curl").arg(&url).output()?;
         let result = String::from_utf8_lossy(&out.stdout);
         Ok(result.to_string())
+    }
+}
+
+// Netcat
+#[derive(Debug)]
+pub struct Netcat(ExposedPort);
+
+impl Netcat {
+    const PORT: u16 = 8888;
+
+    pub async fn addr(&self) -> Result<SocketAddr, PortError> {
+        let port = self.0.host_port().await?;
+        let result = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port.into());
+        Ok(result)
+    }
+}
+
+impl Default for Netcat {
+    fn default() -> Self {
+        Self(ExposedPort::new(Self::PORT))
+    }
+}
+
+impl ToRunnableContainer for Netcat {
+    fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
+        builder
+            .with_image(ImageName::new("alpine"))
+            .with_port_mappings([self.0.clone()])
+            .with_wait_strategy(WaitStrategy::scan_port(Self::PORT))
+            .with_command(["nc", "-vl", "8888"])
+            .build()
     }
 }
