@@ -6,9 +6,11 @@ use async_trait::async_trait;
 use indexmap::IndexMap;
 use serde::de::DeserializeOwned;
 use tokio::net::TcpStream;
+use tokio::sync::mpsc;
 use tracing::{debug, info, trace, warn};
 
 use crate::cmd::Cmd;
+use crate::io::StdIoKind;
 use crate::{
     ContainerHealth, ContainerId, ContainerNetwork, ContainerProcess, ContainerState,
     ContainerStatus, ExposedPort, HealthCheck, Network, Port, RunnableContainer, Volume,
@@ -195,6 +197,21 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         wait_condition: &WaitStrategy,
         interval: Duration, // TODO could have a more flexible type
     ) -> Result<(), ContainerError> {
+        if let WaitStrategy::LogMatch { io, matcher } = wait_condition {
+            let mut rx = self.watch_logs(id, *io).await?;
+            while let Some(line) = rx.recv().await {
+                trace!("Log: {line}");
+                if matcher.matches(&line) {
+                    return Ok(());
+                }
+            }
+            return Err(ContainerError::WaitConditionUnreachable(
+                id,
+                wait_condition.clone(),
+            ));
+        }
+
+        // Other cases
         loop {
             match wait_condition {
                 WaitStrategy::HealthCheck | WaitStrategy::CustomHealthCheck(_) => {
@@ -259,12 +276,30 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
                 WaitStrategy::None => {
                     break;
                 }
+                WaitStrategy::LogMatch { .. } => {
+                    unreachable!("This case is handled outside the loop")
+                }
             }
 
             tokio::time::sleep(interval).await;
         }
 
         Ok(())
+    }
+
+    async fn watch_logs(
+        &self,
+        id: ContainerId,
+        io: StdIoKind,
+    ) -> Result<mpsc::Receiver<String>, ContainerError> {
+        let mut cmd = self.command();
+        cmd.push_args(["logs", "--follow"]);
+        cmd.push_arg(id);
+
+        let (tx, rx) = mpsc::channel(256);
+        tokio::spawn(async move { cmd.watch_io(io, tx).await });
+
+        Ok(rx)
     }
 
     async fn check_healthy(&self, id: ContainerId) -> Result<bool, ContainerError> {
@@ -367,6 +402,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         };
 
         // Wait
+        // TODO maybe set a timeout
         self.wait_ready(id, &image.wait_strategy, options.wait_interval)
             .await?;
 

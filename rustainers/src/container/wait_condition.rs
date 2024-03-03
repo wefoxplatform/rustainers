@@ -1,12 +1,14 @@
+use std::fmt::Display;
 use std::time::Duration;
 
+use crate::io::StdIoKind;
 use crate::{ContainerStatus, HealthCheck, Port};
 
 /// Default port scan timeout (100ms)
 pub const SCAN_PORT_DEFAULT_TIMEOUT: Duration = Duration::from_millis(100);
 
 /// Wait strategies
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Default)]
 #[non_exhaustive]
 pub enum WaitStrategy {
     /// With the image health check
@@ -37,9 +39,16 @@ pub enum WaitStrategy {
         timeout: Duration,
     },
 
+    /// Wait until log match a pattern
+    LogMatch {
+        ///
+        io: StdIoKind,
+        /// The matcher
+        matcher: LogMatcher,
+    },
+
     /// Do not wait
     None,
-    // TODO StdLog, ErrLog until match a regex
 }
 
 impl WaitStrategy {
@@ -98,6 +107,45 @@ impl WaitStrategy {
             timeout,
         }
     }
+
+    /// Wait for a log line in stdout contains a string
+    #[must_use]
+    pub fn stdout_contains(s: impl Into<String>) -> Self {
+        Self::LogMatch {
+            io: StdIoKind::Out,
+            matcher: LogMatcher::Contains(s.into()),
+        }
+    }
+
+    /// Wait for a log line in stderr contains a string
+    #[must_use]
+    pub fn stderr_contains(s: impl Into<String>) -> Self {
+        Self::LogMatch {
+            io: StdIoKind::Err,
+            matcher: LogMatcher::Contains(s.into()),
+        }
+    }
+}
+
+#[cfg(feature = "regex")]
+impl WaitStrategy {
+    /// Wait for a log line in stdout match a pattern
+    #[must_use]
+    pub fn stdout_match(re: regex::Regex) -> Self {
+        Self::LogMatch {
+            io: StdIoKind::Out,
+            matcher: LogMatcher::Regex(Box::new(re)),
+        }
+    }
+
+    /// Wait for a log line in stderr match a pattern
+    #[must_use]
+    pub fn stderr_match(re: regex::Regex) -> Self {
+        Self::LogMatch {
+            io: StdIoKind::Err,
+            matcher: LogMatcher::Regex(Box::new(re)),
+        }
+    }
 }
 
 impl From<HealthCheck> for WaitStrategy {
@@ -109,5 +157,55 @@ impl From<HealthCheck> for WaitStrategy {
 impl From<ContainerStatus> for WaitStrategy {
     fn from(value: ContainerStatus) -> Self {
         Self::state(value)
+    }
+}
+
+impl Display for WaitStrategy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::HealthCheck => write!(f, "Container health check"),
+            Self::CustomHealthCheck(hc) => write!(f, "Custom health check {hc:?}"),
+            Self::State(s) => write!(f, "State {s}"),
+            Self::HttpSuccess {
+                https,
+                path,
+                container_port,
+            } => write!(
+                f,
+                "HTTP success {}on path path {path} with container port {container_port}",
+                if *https { "(HTTPS)" } else { "" }
+            ),
+            Self::ScanPort {
+                container_port,
+                timeout,
+            } => write!(
+                f,
+                "Container port {container_port} open (timeout {timeout:?})"
+            ),
+            Self::LogMatch { io, .. } => write!(f, "Log match pattern on {io}"),
+            Self::None => write!(f, "None"),
+        }
+    }
+}
+
+/// The log line matcher
+#[derive(Debug, Clone)]
+#[non_exhaustive]
+pub enum LogMatcher {
+    /// The line is expected to contains the string
+    Contains(String),
+
+    #[cfg(feature = "regex")]
+    /// The line is expected to match the regular expression
+    Regex(Box<regex::Regex>),
+}
+
+impl LogMatcher {
+    pub(crate) fn matches(&self, s: &str) -> bool {
+        match self {
+            Self::Contains(p) => s.contains(p),
+            #[cfg(feature = "regex")]
+            Self::Regex(re) => re.is_match(s),
+        }
     }
 }

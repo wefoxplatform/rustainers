@@ -1,10 +1,10 @@
 use assert2::{check, let_assert};
 use rstest::rstest;
-use rustainers::Volume;
 use ulid::Ulid;
 
 use rustainers::compose::{TemporaryDirectory, TemporaryFile};
 use rustainers::runner::{RunOption, Runner};
+use rustainers::Volume;
 
 mod common;
 pub use self::common::*;

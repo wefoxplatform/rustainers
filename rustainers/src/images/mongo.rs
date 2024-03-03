@@ -1,8 +1,6 @@
-use std::time::Duration;
-
 use crate::{
-    ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
-    RunnableContainerBuilder, ToRunnableContainer,
+    ExposedPort, ImageName, Port, PortError, RunnableContainer, RunnableContainerBuilder,
+    ToRunnableContainer, WaitStrategy,
 };
 
 const MONGO_IMAGE: &ImageName = &ImageName::new("mongo");
@@ -80,15 +78,7 @@ impl ToRunnableContainer for Mongo {
     fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
         builder
             .with_image(self.image.clone())
-            .with_wait_strategy(
-                HealthCheck::builder()
-                    .with_command(
-                        r#"echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet"#,
-                    )
-                    .with_start_period(Duration::from_millis(96))
-                    .with_interval(Duration::from_millis(96))
-                    .build(),
-            )
+            .with_wait_strategy(WaitStrategy::stdout_contains("Waiting for connections"))
             .with_port_mappings([self.port.clone()])
             .build()
     }

@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::cmd::CommandError;
 use crate::version::Version;
-use crate::{ContainerId, IdError, Network, Port, RunnableContainer, VolumeError};
+use crate::{ContainerId, IdError, Network, Port, RunnableContainer, VolumeError, WaitStrategy};
 
 use super::Runner;
 
@@ -180,6 +180,10 @@ pub enum ContainerError {
     /// Fail to remove a container
     #[error("Container '{0}' cannot be removed")]
     ContainerCannotBeRemoved(ContainerId),
+
+    /// The container cannot reach wait condition
+    #[error("Container {0} cannot reach wait condition {1}")]
+    WaitConditionUnreachable(ContainerId, WaitStrategy),
 
     /// Fail to run error
     #[error(transparent)]
