@@ -24,6 +24,8 @@ pub(crate) mod cmd;
 
 pub(crate) mod version;
 
+pub(crate) mod io;
+
 /// Runners like docker, podman, ...
 pub mod runner;
 

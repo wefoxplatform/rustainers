@@ -1,13 +1,15 @@
+use indexmap::IndexMap;
+use serde::de::DeserializeOwned;
 use std::borrow::Cow;
 use std::fmt::{self, Display};
 use std::path::Path;
-use std::process::{ExitStatus, Output};
-
-use indexmap::IndexMap;
-use serde::de::DeserializeOwned;
+use std::process::{ExitStatus, Output, Stdio};
+use tokio::sync::mpsc;
 use tracing::{debug, warn};
 
 mod error;
+use crate::io::{read_lines, StdIoKind};
+
 pub use self::error::*;
 
 #[derive(Debug, Clone)]
@@ -58,7 +60,7 @@ impl<'a> Cmd<'a> {
             Ok(output) => output,
             Err(source) => {
                 return Err(CommandError::CommandProcessError {
-                    command: format!("{self}"),
+                    command: self.to_string(),
                     source,
                 })
             }
@@ -148,6 +150,43 @@ impl<'a> Cmd<'a> {
             c.current_dir(dir);
         }
         let output = c.args(&self.args).output().await;
+        self.handle_output(output)
+    }
+
+    pub(super) async fn watch_io(
+        &self,
+        io: StdIoKind,
+        tx: mpsc::Sender<String>,
+    ) -> Result<Output, CommandError> {
+        debug!("Running command\n{self}");
+        let mut c = tokio::process::Command::new(self.command);
+        c.envs(&self.env);
+        if let Some(dir) = self.dir {
+            c.current_dir(dir);
+        }
+        c.stdout(Stdio::piped());
+        c.stderr(Stdio::piped());
+
+        let mut child = c
+            .args(&self.args)
+            .spawn()
+            .map_err(|source| CommandError::IoError {
+                command: self.to_string(),
+                source,
+            })?;
+
+        let result = match io {
+            StdIoKind::Out => read_lines(child.stdout.take(), tx).await,
+            StdIoKind::Err => read_lines(child.stderr.take(), tx).await,
+        };
+        if let Err(source) = result {
+            return Err(CommandError::CommandWatchFail {
+                command: self.to_string(),
+                source,
+            });
+        }
+
+        let output = child.wait_with_output().await;
         self.handle_output(output)
     }
 
