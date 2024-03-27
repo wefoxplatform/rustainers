@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.0](https://github.com/wefoxplatform/rustainers/compare/v0.11.0...v0.12.0) - 2024-03-27
+
+### ⚠️ breaking changes
+
+- Type `WaitStrategy` no longer derives `Eq` and `PartialEq`
+- Added new `ContainerStatus` variant: `Removing`
+
+### Added
+- add wait strategy for watching logs
+- add generic image
+- add socket wait strategy
+- add http wait strategy
+- add copy tools
+- entrypoint and command in run option
+- support env. var.
+- support volumes
+- Add network option
+
+### Fixed
+- use stronger atomic ordering
+
+### Other
+- simplify code
+
+
 ## [0.11.0] - 2023-11-30
 
 ### Bug Fixes
