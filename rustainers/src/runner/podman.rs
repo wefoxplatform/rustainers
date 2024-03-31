@@ -161,7 +161,7 @@ mod tests {
         let json = include_str!("../../tests/assets/podman_version.json");
         let version = serde_json::from_str::<PodmanVersion>(json).unwrap();
         let result = serde_json::to_string_pretty(&version).unwrap();
-        insta::assert_display_snapshot!(result);
+        insta::assert_snapshot!(result);
     }
     #[test]
     fn should_serde_compose() {

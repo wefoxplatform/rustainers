@@ -25,6 +25,9 @@ pub use self::mongo::*;
 mod alpine;
 pub use self::alpine::*;
 
+mod mosquitto;
+pub use self::mosquitto::*;
+
 /// A Generic Image
 #[derive(Debug)]
 pub struct GenericImage(RunnableContainer);
