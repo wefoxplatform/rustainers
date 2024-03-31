@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use crate::{
-    ExposedPort, ImageName, Port, PortError, RunnableContainer,
-    RunnableContainerBuilder, ToRunnableContainer, WaitStrategy,
+    ExposedPort, ImageName, Port, PortError, RunnableContainer, RunnableContainerBuilder,
+    ToRunnableContainer, WaitStrategy,
 };
 
 const MOSQUITTO_IMAGE: &ImageName = &ImageName::new("eclipse-mosquitto");
