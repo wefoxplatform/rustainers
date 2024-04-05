@@ -25,6 +25,9 @@ pub(crate) use self::inner::*;
 mod options;
 pub use self::options::*;
 
+mod runner_network;
+pub use self::runner_network::*;
+
 /// The test containers runner
 ///
 /// Use the [`Runner::auto`], [`Runner::docker`], [`Runner::podman`], [`Runner::nerdctl`] functions

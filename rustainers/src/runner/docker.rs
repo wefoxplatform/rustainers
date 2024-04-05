@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
 
 use crate::cmd::Cmd;
-use crate::runner::RunnerError;
+use crate::runner::{RunnerError, RunnerNetworks};
 use crate::version::Version;
 
 use super::InnerRunner;
@@ -72,6 +72,17 @@ pub(super) fn create() -> Result<Docker, RunnerError> {
     })
 }
 
+#[allow(dead_code)]
+fn networks() -> Result<RunnerNetworks, serde_json::Error> {
+    let mut cmd = Cmd::new("docker");
+    cmd.push_args(["network", "ls", "--format={{json .}}"]);
+    if let Ok(output) = cmd.result_blocking() {
+        output.parse::<RunnerNetworks>()
+    } else {
+        debug!("Fail to check docker networks");
+        Ok(RunnerNetworks { networks: vec![] })
+    }
+}
 fn compose_version() -> Option<Version> {
     let mut cmd = Cmd::new("docker");
     cmd.push_args(["compose", "version", "--format", "json"]);
@@ -128,6 +139,12 @@ mod tests {
         let json = include_str!("../../tests/assets/docker-compose_version.json");
         let version = serde_json::from_str::<DockerComposeVersion>(json).unwrap();
         insta::assert_debug_snapshot!(version);
+    }
+
+    #[cfg(feature = "ensure-docker")]
+    #[test]
+    fn should_retrieve_network() {
+        assert2::let_assert!(Ok(_) = networks());
     }
 
     #[cfg(feature = "ensure-docker")]
