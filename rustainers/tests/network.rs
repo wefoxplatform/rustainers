@@ -15,6 +15,9 @@ async fn should_work_with_network(runner: &Runner) -> anyhow::Result<()> {
     let name = format!("my_network_{id}",);
     let network = runner.create_network(&name).await?;
 
+    let results = runner.list_networks().await?;
+    assert!(results.iter().any(|e| e.name == name));
+
     // Container A inside network
     let options = RunOption::builder()
         .with_name(format!("web-server_{id}"))

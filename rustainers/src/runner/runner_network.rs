@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
 /// The network driver
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -23,12 +22,13 @@ pub enum Driver {
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-// #[strum()]
 pub struct RunnerNetwork {
     /// The network name
-    name: String,
-    scope: String,
-    driver: Driver,
+    pub name: String,
+    /// The network scope
+    pub scope: String,
+    /// The network driver
+    pub driver: Driver,
 }
 impl RunnerNetwork {
     #[allow(dead_code)]
@@ -40,46 +40,27 @@ impl RunnerNetwork {
     }
 }
 
-/// A list of runner networks
-///
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RunnerNetworks {
-    /// The networks
-    pub networks: Vec<RunnerNetwork>,
-}
-
-impl FromStr for RunnerNetworks {
-    type Err = serde_json::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // Convert to string to get the lines
-        let input = s.to_string();
-        let networks = input
-            .lines()
-            .map(serde_json::from_str)
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(RunnerNetworks { networks })
-    }
-}
-
 #[cfg(test)]
 mod tests {
 
     use super::*;
+    use assert2::let_assert;
 
     #[test]
     fn should_serde_network() {
-        let json = include_str!("../../tests/assets/docker_networks.jsonl");
-        let networks = json.parse::<RunnerNetworks>().unwrap();
-        insta::assert_debug_snapshot!(networks);
+        let json_stream = include_str!("../../tests/assets/docker_networks.jsonl");
+        let stream = serde_json::Deserializer::from_str(json_stream).into_iter::<RunnerNetwork>();
+        let networks = stream.collect::<Result<Vec<_>, _>>();
+        let_assert!(Ok(data) = networks);
+        insta::assert_debug_snapshot!(data);
     }
 
     #[test]
     fn should_filter_network() {
-        let json = include_str!("../../tests/assets/docker_networks.jsonl");
-        let networks = json.parse::<RunnerNetworks>().unwrap();
+        let json_stream = include_str!("../../tests/assets/docker_networks.jsonl");
+        let stream = serde_json::Deserializer::from_str(json_stream).into_iter::<RunnerNetwork>();
+        let networks = stream.collect::<Result<Vec<_>, _>>().unwrap();
         let host_network = networks
-            .networks
             .into_iter()
             .filter(RunnerNetwork::is_host_bridge_network)
             .collect::<Vec<RunnerNetwork>>();

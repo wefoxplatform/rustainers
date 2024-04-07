@@ -11,6 +11,7 @@ use tracing::{debug, info, trace, warn};
 
 use crate::cmd::Cmd;
 use crate::io::StdIoKind;
+use crate::runner::RunnerNetwork;
 use crate::{
     ContainerHealth, ContainerId, ContainerNetwork, ContainerProcess, ContainerState,
     ContainerStatus, ExposedPort, HealthCheck, Network, Port, RunnableContainer, Volume,
@@ -37,6 +38,14 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
 
         let containers = cmd.json_stream::<ContainerProcess>().await?;
         let result = containers.into_iter().find(|it| it.names.contains(name));
+        Ok(result)
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_networks(&self) -> Result<Vec<RunnerNetwork>, ContainerError> {
+        let mut cmd = self.command();
+        cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
+        let result = cmd.json_stream::<RunnerNetwork>().await?;
         Ok(result)
     }
 

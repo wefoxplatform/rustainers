@@ -193,6 +193,25 @@ impl Runner {
         Ok(Network::Custom(name))
     }
 
+    /// List networks
+    ///
+    /// # Errors
+    ///
+    /// Could fail if we cannot execute the command
+    pub async fn list_networks(&self) -> Result<Vec<RunnerNetwork>, RunnerError> {
+        let result = match self {
+            Self::Docker(runner) => runner.list_networks().await,
+            Self::Podman(runner) => runner.list_networks().await,
+            Self::Nerdctl(runner) => runner.list_networks().await,
+        }
+        .map_err(|source| RunnerError::ListNetworkError {
+            runner: self.clone(),
+            source: Box::new(source),
+        })?;
+
+        Ok(result)
+    }
+
     /// Create a container volume
     ///
     /// # Errors

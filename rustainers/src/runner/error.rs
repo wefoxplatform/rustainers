@@ -64,6 +64,15 @@ pub enum RunnerError {
         source: Box<ContainerError>,
     },
 
+    /// Fail to create a network
+    #[error("Fail to list network because {source}\nrunner: {runner}")]
+    ListNetworkError {
+        /// The runner
+        runner: Runner,
+        /// The source error
+        source: Box<ContainerError>,
+    },
+
     /// Fail to create a volume
     #[error("Fail to create volume'{name}' because {source}\nrunner: {runner}")]
     CreateVolumeError {
