@@ -1,27 +1,35 @@
 ---
 source: rustainers/src/runner/runner_network.rs
-assertion_line: 54
+assertion_line: 49
 expression: data
 ---
 [
     RunnerNetwork {
         name: "bridge",
-        scope: "local",
+        scope: Some(
+            "local",
+        ),
         driver: Bridge,
     },
     RunnerNetwork {
         name: "dummy_network",
-        scope: "local",
+        scope: Some(
+            "local",
+        ),
         driver: Bridge,
     },
     RunnerNetwork {
         name: "host",
-        scope: "local",
+        scope: Some(
+            "local",
+        ),
         driver: Host,
     },
     RunnerNetwork {
         name: "none",
-        scope: "local",
+        scope: Some(
+            "local",
+        ),
         driver: Null,
     },
 ]

@@ -23,21 +23,15 @@ pub enum Driver {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct RunnerNetwork {
+    #[serde(alias = "name")]
     /// The network name
     pub name: String,
+    #[serde(alias = "scope")]
     /// The network scope
-    pub scope: String,
+    pub scope: Option<String>,
+    #[serde(alias = "driver")]
     /// The network driver
     pub driver: Driver,
-}
-impl RunnerNetwork {
-    #[allow(dead_code)]
-    #[must_use]
-    /// Check network is from the host
-    ///
-    pub fn is_host_bridge_network(&self) -> bool {
-        self.scope == "local" && self.driver == Driver::Bridge && self.name != "bridge"
-    }
 }
 
 #[cfg(test)]
@@ -56,14 +50,11 @@ mod tests {
     }
 
     #[test]
-    fn should_filter_network() {
-        let json_stream = include_str!("../../tests/assets/docker_networks.jsonl");
+    fn should_serde_podman_network() {
+        let json_stream = include_str!("../../tests/assets/podman_networks.jsonl");
         let stream = serde_json::Deserializer::from_str(json_stream).into_iter::<RunnerNetwork>();
-        let networks = stream.collect::<Result<Vec<_>, _>>().unwrap();
-        let host_network = networks
-            .into_iter()
-            .filter(RunnerNetwork::is_host_bridge_network)
-            .collect::<Vec<RunnerNetwork>>();
-        assert_eq!(host_network.len(), 1);
+        let networks = stream.collect::<Result<Vec<_>, _>>();
+        let_assert!(Ok(data) = networks);
+        insta::assert_debug_snapshot!(data);
     }
 }

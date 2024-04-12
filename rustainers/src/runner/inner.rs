@@ -42,19 +42,19 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
-    async fn list_networks(&self) -> Result<Vec<RunnerNetwork>, ContainerError> {
-        let mut cmd = self.command();
-        cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
-        let result = cmd.json_stream::<RunnerNetwork>().await?;
-        Ok(result)
-    }
-
-    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
     async fn create_network(&self, name: &str) -> Result<(), ContainerError> {
         let mut cmd = self.command();
         cmd.push_args(["network", "create", name]);
         cmd.status().await?;
         Ok(())
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_networks(&self) -> Result<Vec<RunnerNetwork>, ContainerError> {
+        let mut cmd = self.command();
+        cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
+        let result = cmd.json_stream::<RunnerNetwork>().await?;
+        Ok(result)
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]

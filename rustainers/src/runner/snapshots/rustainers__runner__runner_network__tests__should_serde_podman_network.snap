@@ -1,0 +1,52 @@
+---
+source: rustainers/src/runner/runner_network.rs
+assertion_line: 59
+expression: data
+---
+[
+    RunnerNetwork {
+        name: "my_network_01HTY22KXBHP2MVFPFSSK9CQCG",
+        scope: None,
+        driver: Bridge,
+    },
+    RunnerNetwork {
+        name: "my_network_01HTY4NQF1GH56JNA8MXNN0ZMF",
+        scope: None,
+        driver: Bridge,
+    },
+    RunnerNetwork {
+        name: "my_network_01HTY4NQSHF5Y6Q572X1G748ZJ",
+        scope: None,
+        driver: Bridge,
+    },
+    RunnerNetwork {
+        name: "my_network_01HTY4T0FHGZF5ZYYXG9SJM69R",
+        scope: None,
+        driver: Bridge,
+    },
+    RunnerNetwork {
+        name: "my_network_01HTY4T1SWV848BEX4VXAR9FVE",
+        scope: None,
+        driver: Bridge,
+    },
+    RunnerNetwork {
+        name: "podman",
+        scope: None,
+        driver: Bridge,
+    },
+    RunnerNetwork {
+        name: "tc_redpanda-single_01hty22k12cw846sk95pafkxpz_redpanda_network",
+        scope: None,
+        driver: Bridge,
+    },
+    RunnerNetwork {
+        name: "tc_redpanda-single_01hty4npgg9c0x5d536qjc88tx_redpanda_network",
+        scope: None,
+        driver: Bridge,
+    },
+    RunnerNetwork {
+        name: "tc_redpanda-single_01hty4sweerk2zmv3exqj4xzte_redpanda_network",
+        scope: None,
+        driver: Bridge,
+    },
+]
