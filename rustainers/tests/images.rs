@@ -1,9 +1,11 @@
+#![allow(clippy::expect_used)]
+
 use std::time::SystemTime;
 
 use assert2::check;
 use rstest::rstest;
 use tokio::task::JoinSet;
-use tracing::debug;
+use tracing::{debug, info};
 
 use rustainers::images::{Minio, Mongo, Postgres, Redis};
 use rustainers::runner::{RunOption, Runner};
@@ -74,24 +76,25 @@ async fn test_run_in_multiple_tasks(runner: &Runner) -> anyhow::Result<()> {
 
     for id in 0..size {
         let img = Redis::default();
-        let r = runner.clone();
+        let runner = runner.clone();
         set.spawn(async move {
-            let container = r.start(img).await.unwrap();
+            let container = runner.start(img).await.expect("container started");
             (id, container)
         });
     }
 
     // wait all
     let mut finished = vec![false; size];
+    #[allow(clippy::indexing_slicing)]
     while let Some(Ok((id, container))) = set.join_next().await {
-        println!("Container #{id} {container:#?}");
+        info!("Container #{id} {container:#?}");
         finished[id] = true;
     }
     let duration = start.elapsed()?;
-    for (id, v) in finished.iter().enumerate() {
-        check!(*v == true, "Task #{id} not finished");
+    for (id, value) in finished.iter().enumerate() {
+        check!(*value == true, "Task #{id} not finished");
     }
-    println!("Took {}s", duration.as_secs_f32());
+    info!("Took {}s", duration.as_secs_f32());
 
     Ok(())
 }

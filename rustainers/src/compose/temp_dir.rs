@@ -24,10 +24,10 @@ use super::TempDirError;
 #[derive(Debug, TypedBuilder)]
 #[builder(field_defaults(setter(prefix = "with_")))]
 pub struct TemporaryFile {
-    #[builder(setter(transform = |p: impl AsRef<Path>| p.as_ref().to_path_buf()))]
+    #[builder(setter(transform = |path: impl AsRef<Path>| path.as_ref().to_path_buf()))]
     path: PathBuf,
 
-    #[builder(setter(transform = |c: impl AsRef<[u8]>| c.as_ref().to_vec()))]
+    #[builder(setter(transform = |content: impl AsRef<[u8]>| content.as_ref().to_vec()))]
     content: Vec<u8>,
 
     #[builder(default, setter(strip_option))]
@@ -189,7 +189,7 @@ mod tests {
     async fn should_create_dir() {
         _ = tracing_subscriber::fmt::try_init();
 
-        let plop = TemporaryDirectory::new("plop").await.unwrap();
+        let plop = TemporaryDirectory::new("plop").await.expect("temp. dir.");
 
         // Check directory exists
         let path = plop.as_ref().to_path_buf();
@@ -214,7 +214,7 @@ mod tests {
                 .build()],
         )
         .await
-        .unwrap();
+        .expect("temp. dir.");
 
         // Check directory exists
         let path = plop.as_ref().to_path_buf();
@@ -226,7 +226,7 @@ mod tests {
         child.push("plop.txt");
         assert!(child.exists());
         assert!(child.is_file());
-        let child_content = fs::read_to_string(child).await.unwrap();
+        let child_content = fs::read_to_string(child).await.expect("file content");
         check!(child_content == "plop");
 
         // Check the directory is remove on drop

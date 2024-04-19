@@ -125,7 +125,7 @@ mod tests {
     async fn should_build_kafka_schema_registry() {
         _ = tracing_subscriber::fmt::try_init();
 
-        let image = Redpanda::build_single().await.unwrap();
+        let image = Redpanda::build_single().await.expect("red-panda");
         let dir = image.temp_dir.as_ref().to_path_buf();
 
         assert!(dir.join("docker-compose.yaml").exists());

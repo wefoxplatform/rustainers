@@ -59,8 +59,8 @@ where
         }
 
         info!(%name, "🚮 Stopping compose containers");
-        if let Err(e) = self.runner.compose_stop(&self.name, self.file.as_ref()) {
-            error!(%name, "Fail to stop compose containers {self} because {e}");
+        if let Err(err) = self.runner.compose_stop(&self.name, self.file.as_ref()) {
+            error!(%name, "Fail to stop compose containers {self} because {err}");
         }
     }
 }

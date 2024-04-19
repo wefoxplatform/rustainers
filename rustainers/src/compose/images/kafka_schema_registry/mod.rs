@@ -116,7 +116,9 @@ mod tests {
     async fn should_build_kafka_schema_registry() {
         _ = tracing_subscriber::fmt::try_init();
 
-        let image = KafkaSchemaRegistry::build_single_kraft().await.unwrap();
+        let image = KafkaSchemaRegistry::build_single_kraft()
+            .await
+            .expect("kafka+schema registry");
         let dir = image.temp_dir.as_ref().to_path_buf();
 
         assert!(dir.join("docker-compose.yaml").exists());

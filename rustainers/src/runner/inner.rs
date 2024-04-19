@@ -76,8 +76,8 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
 
         // Env. vars.
         for (key, value) in option.env {
-            let v = format!("{key}={value}");
-            cmd.push_args(["--env", &v]);
+            let env_var = format!("{key}={value}");
+            cmd.push_args(["--env", &env_var]);
         }
 
         // Published ports
@@ -447,8 +447,8 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     }
 }
 
-fn parse_port(s: &str) -> Option<Port> {
-    s.lines()
+fn parse_port(str: &str) -> Option<Port> {
+    str.lines()
         .filter_map(|it| it.parse::<SocketAddr>().ok())
         .map(|it| Port(it.port()))
         .next()
@@ -483,8 +483,13 @@ impl<'a> CreateAndStartOption<'a> {
         let env = image
             .env
             .iter()
-            .map(|(k, v)| (k.as_str(), v.as_str()))
-            .chain(option.env.iter().map(|(k, v)| (k.as_str(), v.as_str())))
+            .map(|(key, value)| (key.as_str(), value.as_str()))
+            .chain(
+                option
+                    .env
+                    .iter()
+                    .map(|(key, value)| (key.as_str(), value.as_str())),
+            )
             .collect();
         let command = if let Some(cmd) = &option.command {
             cmd.as_slice()
@@ -524,8 +529,8 @@ mod tests {
 ",
         32780
     )]
-    fn should_parse_port(#[case] s: &str, #[case] expected: u16) {
-        let result = parse_port(s);
+    fn should_parse_port(#[case] str: &str, #[case] expected: u16) {
+        let result = parse_port(str);
         let_assert!(Some(port) = result);
         check!(port == expected);
     }

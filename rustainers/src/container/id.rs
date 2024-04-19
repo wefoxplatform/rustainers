@@ -29,8 +29,8 @@ impl From<ContainerId> for String {
 impl FromStr for ContainerId {
     type Err = IdError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.parse::<Id>().map(Self)
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        str.parse::<Id>().map(Self)
     }
 }
 

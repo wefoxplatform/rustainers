@@ -55,11 +55,11 @@ impl Display for Port {
 impl FromStr for Port {
     type Err = PortError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let p = s
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        let port = str
             .parse()
-            .map_err(|_| PortError::InvalidPortMapping(s.to_string()))?;
-        Ok(Self(p))
+            .map_err(|_| PortError::InvalidPortMapping(str.to_string()))?;
+        Ok(Self(port))
     }
 }
 

@@ -104,12 +104,12 @@ impl Display for ImageName {
 impl FromStr for ImageName {
     type Err = ImageNameError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        if str.is_empty() {
             return Err(ImageNameError::EmptyName);
         }
 
-        let result = if let Some((name, rest)) = s.split_once(':') {
+        let result = if let Some((name, rest)) = str.split_once(':') {
             if let Some((tag, digest)) = rest.split_once('@') {
                 Self {
                     repository: Cow::Owned(String::from(name)),
@@ -123,7 +123,7 @@ impl FromStr for ImageName {
                     digest: None,
                 }
             }
-        } else if let Some((name, digest)) = s.split_once('@') {
+        } else if let Some((name, digest)) = str.split_once('@') {
             Self {
                 repository: Cow::Owned(String::from(name)),
                 tag: None,
@@ -131,7 +131,7 @@ impl FromStr for ImageName {
             }
         } else {
             Self {
-                repository: Cow::Owned(String::from(s)),
+                repository: Cow::Owned(String::from(str)),
                 tag: None,
                 digest: None,
             }

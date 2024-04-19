@@ -16,11 +16,11 @@ pub struct RunnableComposeContainers<P> {
     pub(crate) compose_path: P,
 
     /// The wait condition
-    #[builder(default, setter(transform = |args: impl IntoIterator<Item = (impl Into<ComposeService>, impl Into<WaitStrategy>)>| args.into_iter().map(|(k,v)| (k.into(), v.into())).collect()))]
+    #[builder(default, setter(transform = |args: impl IntoIterator<Item = (impl Into<ComposeService>, impl Into<WaitStrategy>)>| args.into_iter().map(|(key, value)| (key.into(), value.into())).collect()))]
     pub(crate) wait_strategies: Vec<(ComposeService, WaitStrategy)>,
 
     /// The services port mapping
-    #[builder(default, setter(transform = |args: impl IntoIterator<Item = (impl Into<ComposeService>, ExposedPort)>| args.into_iter().map(|(k,v)| (k.into(), v)).collect()))]
+    #[builder(default, setter(transform = |args: impl IntoIterator<Item = (impl Into<ComposeService>, ExposedPort)>| args.into_iter().map(|(key, value)| (key.into(), value)).collect()))]
     pub(crate) port_mappings: Vec<(ComposeService, ExposedPort)>,
 }
 

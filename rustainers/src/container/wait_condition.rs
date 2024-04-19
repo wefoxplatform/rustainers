@@ -110,19 +110,19 @@ impl WaitStrategy {
 
     /// Wait for a log line in stdout contains a string
     #[must_use]
-    pub fn stdout_contains(s: impl Into<String>) -> Self {
+    pub fn stdout_contains(str: impl Into<String>) -> Self {
         Self::LogMatch {
             io: StdIoKind::Out,
-            matcher: LogMatcher::Contains(s.into()),
+            matcher: LogMatcher::Contains(str.into()),
         }
     }
 
     /// Wait for a log line in stderr contains a string
     #[must_use]
-    pub fn stderr_contains(s: impl Into<String>) -> Self {
+    pub fn stderr_contains(str: impl Into<String>) -> Self {
         Self::LogMatch {
             io: StdIoKind::Err,
-            matcher: LogMatcher::Contains(s.into()),
+            matcher: LogMatcher::Contains(str.into()),
         }
     }
 }
@@ -165,7 +165,7 @@ impl Display for WaitStrategy {
         match self {
             Self::HealthCheck => write!(f, "Container health check"),
             Self::CustomHealthCheck(hc) => write!(f, "Custom health check {hc:?}"),
-            Self::State(s) => write!(f, "State {s}"),
+            Self::State(state) => write!(f, "State {state}"),
             Self::HttpSuccess {
                 https,
                 path,
@@ -201,11 +201,11 @@ pub enum LogMatcher {
 }
 
 impl LogMatcher {
-    pub(crate) fn matches(&self, s: &str) -> bool {
+    pub(crate) fn matches(&self, str: &str) -> bool {
         match self {
-            Self::Contains(p) => s.contains(p),
+            Self::Contains(pattern) => str.contains(pattern),
             #[cfg(feature = "regex")]
-            Self::Regex(re) => re.is_match(s),
+            Self::Regex(re) => re.is_match(str),
         }
     }
 }

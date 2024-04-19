@@ -7,7 +7,7 @@ use rustainers::runner::Runner;
 
 pub mod images;
 
-pub fn init_tracing(level: Level) {
+pub fn init_test_tracing(level: Level) {
     tracing_subscriber::fmt()
         .pretty()
         .with_line_number(true)
@@ -22,8 +22,9 @@ pub fn init_tracing(level: Level) {
 #[fixture]
 #[once]
 pub fn runner() -> Runner {
-    init_tracing(Level::INFO);
+    init_test_tracing(Level::INFO);
 
+    #[allow(clippy::expect_used)]
     let runner = Runner::auto().expect("Should find a valid runner");
     debug!("Using runner {runner:?}");
     runner

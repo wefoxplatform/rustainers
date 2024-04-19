@@ -87,14 +87,14 @@ mod tests {
     #[test]
     fn should_serde_inspect_status() {
         let json = include_str!("../../tests/assets/inspect-state.json");
-        let result = serde_json::from_str::<ContainerState>(json).unwrap();
+        let result = serde_json::from_str::<ContainerState>(json).expect("container state");
         insta::assert_debug_snapshot!(result);
     }
 
     #[test]
     fn should_serde_inspect_status_exited() {
         let json = include_str!("../../tests/assets/inspect-state-exited.json");
-        let result = serde_json::from_str::<ContainerState>(json).unwrap();
+        let result = serde_json::from_str::<ContainerState>(json).expect("container state");
         insta::assert_debug_snapshot!(result);
     }
 }

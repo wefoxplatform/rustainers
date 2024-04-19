@@ -2,6 +2,7 @@ use tracing::Level;
 use tracing_subscriber::fmt::format::FmtSpan;
 use tracing_subscriber::fmt::time;
 
+/// Initialize tracing for testing purpose
 pub fn init_tracing(level: Level) {
     tracing_subscriber::fmt()
         .pretty()

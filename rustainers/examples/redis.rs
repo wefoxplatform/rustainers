@@ -1,3 +1,5 @@
+//! Example to use Redis
+
 use std::time::Duration;
 
 use redis::{Client, Commands};
@@ -40,7 +42,7 @@ async fn do_something_in_redis(redis: &Redis) -> anyhow::Result<()> {
     // from the function is a result for integer this will automatically
     // convert into one.
     let result = con.get::<_, String>(&key)?;
-    println!("Result: {result}");
+    info!("Result: {result}");
 
     Ok(())
 }

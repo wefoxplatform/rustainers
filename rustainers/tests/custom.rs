@@ -5,6 +5,7 @@ use rustainers::runner::{RunOption, Runner};
 use rustainers::{
     ContainerStatus, ImageName, RunnableContainer, RunnableContainerBuilder, ToRunnableContainer,
 };
+use tracing::error;
 
 mod common;
 pub use self::common::*;
@@ -29,8 +30,8 @@ async fn should_run_hello_world(runner: &Runner) {
     let result = runner
         .start_with_options(HelloWorld, RunOption::default())
         .await;
-    if let Err(e) = &result {
-        eprintln!("{e}");
+    if let Err(err) = &result {
+        error!("{err}");
     }
     let_assert!(Ok(_) = result);
 }

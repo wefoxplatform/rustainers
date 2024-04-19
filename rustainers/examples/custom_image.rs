@@ -1,3 +1,5 @@
+//! Example to show how to build a custom image
+
 use std::process::Command;
 
 use tracing::{info, Level};

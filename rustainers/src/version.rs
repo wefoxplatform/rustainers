@@ -30,8 +30,8 @@ impl Version {
     }
 }
 
-fn extract_simple_version(s: &str) -> Result<Version, VersionError> {
-    let Some((major, rest)) = s.split_once('.') else {
+fn extract_simple_version(str: &str) -> Result<Version, VersionError> {
+    let Some((major, rest)) = str.split_once('.') else {
         return Err(VersionError::RequireMajorMinor);
     };
     let major = major.parse().map_err(VersionError::InvalidMajorVersion)?;
@@ -56,17 +56,17 @@ fn extract_simple_version(s: &str) -> Result<Version, VersionError> {
 impl FromStr for Version {
     type Err = VersionError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s.trim_start_matches('v');
-        if s.is_empty() {
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        let str = str.trim_start_matches('v');
+        if str.is_empty() {
             return Err(VersionError::Empty);
         }
 
-        if let Some(idx) = s.find(['-', '+']) {
-            let (version, _) = s.split_at(idx);
+        if let Some(idx) = str.find(['-', '+']) {
+            let (version, _) = str.split_at(idx);
             extract_simple_version(version)
         } else {
-            extract_simple_version(s)
+            extract_simple_version(str)
         }
     }
 }
@@ -113,11 +113,11 @@ mod serde_version {
             formatter.write_str("an version with the '<major>.<minor>.<patch>+<build>' pattern")
         }
 
-        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
         where
             E: serde::de::Error,
         {
-            v.parse().map_err(E::custom)
+            value.parse().map_err(E::custom)
         }
     }
 
@@ -139,7 +139,7 @@ mod tests {
 
     use super::*;
 
-    fn v(major: u64, minor: u64, patch: Option<u64>) -> Version {
+    fn version(major: u64, minor: u64, patch: Option<u64>) -> Version {
         Version {
             major,
             minor,
@@ -148,15 +148,15 @@ mod tests {
     }
 
     #[rstest]
-    #[case("v1.2.3+plop", v(1, 2, Some(3)))]
-    #[case("1.2.3+plop", v(1, 2, Some(3)))]
-    #[case("1.2.3-plop", v(1, 2, Some(3)))]
-    #[case("1.2.3", v(1, 2, Some(3)))]
-    #[case("1.2+plop", v(1, 2, None))]
-    #[case("1.2", v(1, 2, None))]
+    #[case("v1.2.3+plop", version(1, 2, Some(3)))]
+    #[case("1.2.3+plop", version(1, 2, Some(3)))]
+    #[case("1.2.3-plop", version(1, 2, Some(3)))]
+    #[case("1.2.3", version(1, 2, Some(3)))]
+    #[case("1.2+plop", version(1, 2, None))]
+    #[case("1.2", version(1, 2, None))]
     #[case(
         "11011.246546.465465-asd+asdasd~asdasd",
-        v(11_011, 246_546, Some(465_465))
+        version(11_011, 246_546, Some(465_465))
     )]
     fn should_parse(#[case] input: &str, #[case] expected: Version) {
         // Check parsing
@@ -184,12 +184,12 @@ mod tests {
     }
 
     #[rstest]
-    #[case(v(1, 2, Some(3)))]
-    #[case(v(1, 2, Some(3)))]
-    #[case(v(1, 2, Some(3)))]
-    #[case(v(1, 2, None))]
-    #[case(v(1, 2, None))]
-    #[case(v(1_1011, 246_546, Some(465_465)))]
+    #[case(version(1, 2, Some(3)))]
+    #[case(version(1, 2, Some(3)))]
+    #[case(version(1, 2, Some(3)))]
+    #[case(version(1, 2, None))]
+    #[case(version(1, 2, None))]
+    #[case(version(1_1011, 246_546, Some(465_465)))]
     fn should_serde(#[case] value: Version) {
         let result = serde_json::to_string(&value);
         let_assert!(Ok(json) = result);
@@ -204,18 +204,18 @@ mod tests {
     #[case::minor("1.20.1", "1.2.2")]
     #[case::patch("1.2.4", "1.2.3")]
     #[case::with_patch("1.2.0", "1.2")]
-    fn should_compare(#[case] a: &str, #[case] b: &str) {
-        let a = a.parse::<Version>().unwrap();
-        let b = b.parse::<Version>().unwrap();
+    fn should_compare(#[case] rhs: &str, #[case] lhs: &str) {
+        let rhs = rhs.parse::<Version>().expect("valid version");
+        let lhs = lhs.parse::<Version>().expect("valid version");
 
         // equals
-        check!(a == a);
-        check!(b == b);
+        check!(rhs == rhs);
+        check!(lhs == lhs);
 
         // greater
-        check!(a > b);
+        check!(rhs > lhs);
 
         // lower
-        check!(b < a);
+        check!(lhs < rhs);
     }
 }

@@ -44,7 +44,7 @@ impl Network {
         match self {
             Self::Bridge => Cow::Borrowed("--network=bridge"),
             Self::None => Cow::Borrowed("--network=none"),
-            Self::Container(c) => Cow::Owned(format!("--network=container:{c}")),
+            Self::Container(id) => Cow::Owned(format!("--network=container:{id}")),
             Self::Host => Cow::Borrowed("--network=host"),
             Self::Custom(name) => Cow::Owned(format!("--network={name}")),
         }
@@ -56,7 +56,7 @@ impl Network {
             Self::None => Some("none"),
             Self::Container(_) => None,
             Self::Host => Some("host"),
-            Self::Custom(c) => Some(c),
+            Self::Custom(custom) => Some(custom),
         }
     }
 }
@@ -66,9 +66,9 @@ impl Display for Network {
         match self {
             Self::Bridge => write!(f, "bridge"),
             Self::None => write!(f, "none"),
-            Self::Container(c) => write!(f, "container:{c}"),
+            Self::Container(id) => write!(f, "container:{id}"),
             Self::Host => write!(f, "host"),
-            Self::Custom(c) => write!(f, "{c}"),
+            Self::Custom(custom) => write!(f, "{custom}"),
         }
     }
 }
@@ -119,11 +119,11 @@ mod serde_ip {
             formatter.write_str("an IPv4 as string")
         }
 
-        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
         where
             E: serde::de::Error,
         {
-            v.parse::<Ipv4Addr>().map(Ip).map_err(E::custom)
+            value.parse::<Ipv4Addr>().map(Ip).map_err(E::custom)
         }
     }
 
@@ -154,7 +154,7 @@ mod tests {
     #[rstest]
     #[case::bridge(Network::Bridge, "--network=bridge")]
     #[case::none(Network::None, "--network=none")]
-    #[case::container(Network::Container("123456".parse().unwrap()), "--network=container:123456")]
+    #[case::container(Network::Container("123456".parse().expect("container id")), "--network=container:123456")]
     #[case::host(Network::Host, "--network=host")]
     #[case::custom("user-defined-net".into(), "--network=user-defined-net")]
     fn should_provide_arg(#[case] network: Network, #[case] expected: &str) {
@@ -165,8 +165,8 @@ mod tests {
     #[test]
     fn should_deserialize_container_network() {
         let json = include_str!("../../tests/assets/docker-inspect-network.json");
-        let result = serde_json::from_str::<ContainerNetwork>(json).unwrap();
-        let ip = result.ip_address.unwrap().0;
+        let result = serde_json::from_str::<ContainerNetwork>(json).expect("json");
+        let ip = result.ip_address.expect("IP v4").0;
         check!(ip == Ipv4Addr::from([172_u8, 29, 0, 2]));
     }
 }

@@ -120,13 +120,14 @@ mod tests {
     #[test]
     fn should_serde() {
         let json = include_str!("../../tests/assets/docker_version.json");
-        let version = serde_json::from_str::<DockerVersion>(json).unwrap();
+        let version = serde_json::from_str::<DockerVersion>(json).expect("docker version");
         insta::assert_debug_snapshot!(version);
     }
     #[test]
     fn should_serde_compose() {
         let json = include_str!("../../tests/assets/docker-compose_version.json");
-        let version = serde_json::from_str::<DockerComposeVersion>(json).unwrap();
+        let version =
+            serde_json::from_str::<DockerComposeVersion>(json).expect("docker compose version");
         insta::assert_debug_snapshot!(version);
     }
 

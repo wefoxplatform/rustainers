@@ -1,7 +1,10 @@
+//! Example to use Postgres
+
+use core::panic;
 use std::time::Duration;
 
 use tokio_postgres::NoTls;
-use tracing::{info, Level};
+use tracing::{info, warn, Level};
 
 use rustainers::images::Postgres;
 use rustainers::runner::{RunOption, Runner};
@@ -36,8 +39,8 @@ async fn do_something_in_postgres(pg: &Postgres) -> anyhow::Result<()> {
     // The connection object performs the actual communication with the database,
     // so spawn it off to run on its own.
     tokio::spawn(async move {
-        if let Err(e) = connection.await {
-            eprintln!("connection error: {e}");
+        if let Err(err) = connection.await {
+            warn!("connection error: {err}");
         }
     });
 
@@ -45,7 +48,10 @@ async fn do_something_in_postgres(pg: &Postgres) -> anyhow::Result<()> {
     let rows = client.query("SELECT $1::TEXT", &[&"hello world"]).await?;
 
     // And then check that we got back the same string we sent over.
-    let value: &str = rows[0].get(0);
+    let Some(row) = rows.first() else {
+        panic!("Oops, expected one row");
+    };
+    let value: &str = row.get(0);
     info!("🎉 Result: {value}");
     assert_eq!(value, "hello world");
 

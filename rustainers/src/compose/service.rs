@@ -36,8 +36,8 @@ impl From<&str> for ComposeService {
 impl FromStr for ComposeService {
     type Err = Infallible;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(Arc::from(s)))
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        Ok(Self(Arc::from(str)))
     }
 }
 
