@@ -44,7 +44,7 @@ pub struct RunnableContainer {
     pub(crate) command: Vec<String>,
 
     /// The environment variables
-    #[builder(default, setter(transform = |args: impl IntoIterator<Item = (impl Into<String>, impl Into<String>)>| args.into_iter().map(|(k,v)| (k.into(), v.into())).collect()))]
+    #[builder(default, setter(transform = |args: impl IntoIterator<Item = (impl Into<String>, impl Into<String>)>| args.into_iter().map(|(key, value)| (key.into(), value.into())).collect()))]
     pub(crate) env: IndexMap<String, String>,
 
     /// The wait strategy

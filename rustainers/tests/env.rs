@@ -12,6 +12,7 @@ pub use self::common::*;
 
 #[rstest]
 #[tokio::test]
+#[allow(clippy::indexing_slicing)]
 async fn should_work_with_env(runner: &Runner) -> anyhow::Result<()> {
     let data1 = Ulid::new();
     let data2 = "With space   ";
@@ -30,11 +31,9 @@ async fn should_work_with_env(runner: &Runner) -> anyhow::Result<()> {
     let result = runner.exec(&container, ["env"]).await?;
     let vars = result
         .lines()
-        .filter(|l| !l.is_empty())
-        .filter_map(|l| l.split_once('='))
+        .filter(|line| !line.is_empty())
+        .filter_map(|line| line.split_once('='))
         .collect::<HashMap<_, _>>();
-
-    dbg!(&vars);
 
     check!(vars["TEST_ENV_DATA1"] == data1.to_string());
     check!(vars["TEST_ENV_DATA2"] == data2);

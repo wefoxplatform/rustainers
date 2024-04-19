@@ -76,7 +76,7 @@ mod tests {
     #[test]
     fn should_serde() {
         let json = include_str!("../../tests/assets/nerdctl_version.json");
-        let version = serde_json::from_str::<NerdctlVersion>(json).unwrap();
+        let version = serde_json::from_str::<NerdctlVersion>(json).expect("nerdctl version");
         insta::assert_debug_snapshot!(version);
     }
 

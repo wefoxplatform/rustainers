@@ -1,3 +1,5 @@
+//! Example to use `MongoDB`
+
 use std::time::Duration;
 
 // use mongo::{Client, Commands};
@@ -48,7 +50,7 @@ async fn do_something_in_mongo(mongo: &Mongo) -> anyhow::Result<()> {
 
     let count = collection.count_documents(None, None).await?;
 
-    println!("Number of documents in the collection: {count}");
+    info!("Number of documents in the collection: {count}");
 
     Ok(())
 }

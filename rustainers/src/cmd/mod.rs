@@ -111,12 +111,12 @@ impl<'a> Cmd<'a> {
 impl<'a> Cmd<'a> {
     fn output_blocking(&self) -> Result<Output, CommandError> {
         debug!("Running blocking command\n{self}");
-        let mut c = std::process::Command::new(self.command);
-        c.envs(&self.env);
+        let mut cmd: std::process::Command = std::process::Command::new(self.command);
+        cmd.envs(&self.env);
         if let Some(dir) = self.dir {
-            c.current_dir(dir);
+            cmd.current_dir(dir);
         }
-        let output = c.args(&self.args).output();
+        let output = cmd.args(&self.args).output();
         self.handle_output(output)
     }
 
@@ -144,12 +144,12 @@ impl<'a> Cmd<'a> {
 impl<'a> Cmd<'a> {
     async fn output(&self) -> Result<Output, CommandError> {
         debug!("Running command\n{self}");
-        let mut c = tokio::process::Command::new(self.command);
-        c.envs(&self.env);
+        let mut cmd = tokio::process::Command::new(self.command);
+        cmd.envs(&self.env);
         if let Some(dir) = self.dir {
-            c.current_dir(dir);
+            cmd.current_dir(dir);
         }
-        let output = c.args(&self.args).output().await;
+        let output = cmd.args(&self.args).output().await;
         self.handle_output(output)
     }
 
@@ -159,15 +159,15 @@ impl<'a> Cmd<'a> {
         tx: mpsc::Sender<String>,
     ) -> Result<Output, CommandError> {
         debug!("Running command\n{self}");
-        let mut c = tokio::process::Command::new(self.command);
-        c.envs(&self.env);
+        let mut cmd = tokio::process::Command::new(self.command);
+        cmd.envs(&self.env);
         if let Some(dir) = self.dir {
-            c.current_dir(dir);
+            cmd.current_dir(dir);
         }
-        c.stdout(Stdio::piped());
-        c.stderr(Stdio::piped());
+        cmd.stdout(Stdio::piped());
+        cmd.stderr(Stdio::piped());
 
-        let mut child = c
+        let mut child = cmd
             .args(&self.args)
             .spawn()
             .map_err(|source| CommandError::IoError {

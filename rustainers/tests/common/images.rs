@@ -30,6 +30,11 @@ struct Curl {
     url: String,
 }
 
+/// cURL in a container
+///
+/// # Errors
+///
+/// Fail if the container cannot be started
 pub async fn curl(
     runner: &Runner,
     url: impl Into<String>,
@@ -77,6 +82,10 @@ impl WebServer {
     pub const STATIC_HTML: &'static str = "/usr/share/nginx/html";
 
     /// Get the text content
+    ///
+    /// # Errors
+    ///
+    /// Fail if we cannot retrieve the result
     pub async fn get(&self, path: &str) -> anyhow::Result<String> {
         let port = self.0.host_port().await?;
         let url = format!("http://localhost:{port}/{}", path.trim_start_matches('/')); //DevSkim: ignore DS137138
@@ -93,6 +102,11 @@ pub struct Netcat(ExposedPort);
 impl Netcat {
     const PORT: u16 = 8888;
 
+    /// Get the socket address
+    ///
+    /// # Errors
+    ///
+    /// Fail if the container is not started (port not bound)
     pub async fn addr(&self) -> Result<SocketAddr, PortError> {
         let port = self.0.host_port().await?;
         let result = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port.into());

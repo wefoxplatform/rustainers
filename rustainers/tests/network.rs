@@ -36,7 +36,7 @@ async fn should_work_with_network(runner: &Runner) -> anyhow::Result<()> {
     )
     .await;
 
-    let_assert!(Ok(_) = result);
+    let_assert!(Ok(()) = result);
 
     Ok(())
 }
@@ -71,7 +71,7 @@ async fn should_work_with_network_ip(runner: &Runner) -> anyhow::Result<()> {
     )
     .await;
 
-    let_assert!(Ok(_) = result);
+    let_assert!(Ok(()) = result);
 
     Ok(())
 }
@@ -105,7 +105,7 @@ async fn should_not_work_without_network(runner: &Runner) -> anyhow::Result<()> 
     )
     .await;
 
-    let_assert!(Ok(_) = result);
+    let_assert!(Ok(()) = result);
 
     Ok(())
 }

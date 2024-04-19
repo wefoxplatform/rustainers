@@ -23,6 +23,8 @@ pub struct Id([u8; 32], usize);
 impl From<Id> for String {
     fn from(value: Id) -> Self {
         let Id(data, size) = value;
+        debug_assert!(size <= data.len());
+        #[allow(clippy::indexing_slicing)]
         encode(&data[..size])
     }
 }
@@ -30,27 +32,29 @@ impl From<Id> for String {
 impl FromStr for Id {
     type Err = IdError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        if str.is_empty() {
             return Err(IdError::Empty);
         }
-        if s.len() > 64 {
-            return Err(IdError::TooLong(String::from(s)));
+        if str.len() > 64 {
+            return Err(IdError::TooLong(String::from(str)));
         }
 
-        if s.len() == 64 {
-            let data = <[u8; 32]>::from_hex(s).map_err(|source| IdError::InvalidId {
-                value: String::from(s),
+        if str.len() == 64 {
+            let data = <[u8; 32]>::from_hex(str).map_err(|source| IdError::InvalidId {
+                value: String::from(str),
                 source,
             })?;
             Ok(Self(data, 32))
         } else {
             let mut data = [0; 32];
-            let bytes = decode(s).map_err(|source| IdError::InvalidId {
-                value: String::from(s),
+            let bytes = decode(str).map_err(|source| IdError::InvalidId {
+                value: String::from(str),
                 source,
             })?;
             let size = bytes.len();
+            debug_assert!(size < data.len());
+            #[allow(clippy::indexing_slicing)]
             for (i, b) in bytes.iter().enumerate() {
                 data[i] = *b;
             }
@@ -67,10 +71,12 @@ impl Debug for Id {
 }
 
 impl Display for Id {
+    #[allow(clippy::indexing_slicing)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = String::from(*self);
+        let str = String::from(*self);
         let truncate = self.1.min(6) * 2;
-        write!(f, "{}", &s[..truncate])
+        debug_assert!(truncate <= str.len());
+        write!(f, "{}", &str[..truncate])
     }
 }
 
@@ -85,8 +91,8 @@ mod image_id_serde {
         where
             S: serde::Serializer,
         {
-            let s = String::from(*self);
-            serializer.serialize_str(&s)
+            let str = String::from(*self);
+            serializer.serialize_str(&str)
         }
     }
 
@@ -99,11 +105,11 @@ mod image_id_serde {
             write!(formatter, "Expected an hex-encoded 32 bits (length 64)")
         }
 
-        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
         where
             E: serde::de::Error,
         {
-            v.parse().map_err(E::custom)
+            value.parse().map_err(E::custom)
         }
     }
 
@@ -136,8 +142,8 @@ mod tests {
     )]
     #[case("637ceb59b7a0", "637ceb59b7a0")]
     #[case("637c", "637c")]
-    fn should_parse_id(#[case] s: &str, #[case] short: &str) {
-        let result = s.parse::<Id>();
+    fn should_parse_id(#[case] str: &str, #[case] short: &str) {
+        let result = str.parse::<Id>();
         let_assert!(Ok(id) = result);
         check!(id.to_string() == short);
     }
@@ -145,20 +151,20 @@ mod tests {
     #[rstest]
     #[case::normal("\"c94f6f8d4ef25b80584b9457ca24b964032681895b3a6fd7cd24fd40fad4895e\"")]
     #[case::short("\"637ceb59b7a0\"")]
-    fn should_serde(#[case] s: &str) {
-        let result = serde_json::from_str::<Id>(s);
+    fn should_serde(#[case] str: &str) {
+        let result = serde_json::from_str::<Id>(str);
         let_assert!(Ok(id) = result);
         let result = serde_json::to_string(&id);
         let_assert!(Ok(json) = result);
-        check!(json == s);
+        check!(json == str);
     }
 
     #[rstest]
     #[case::empty("")]
     #[case::invalid("X94f6f8d4ef25b80584b9457ca24b964032681895b3a6fd7cd24fd40fad4895e")]
     #[case::too_long("794f6f8d4ef25b80584b9457ca24b964032681895b3a6fd7cd24fd40fad4895e0000")]
-    fn should_not_parse_image_id(#[case] s: &str) {
-        let result = s.parse::<Id>();
+    fn should_not_parse_image_id(#[case] str: &str) {
+        let result = str.parse::<Id>();
         let_assert!(Err(_) = result);
     }
 }

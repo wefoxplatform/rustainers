@@ -1,4 +1,6 @@
 #![doc = include_str!("../README.md")]
+// TODO remove after moving images & example to another crate
+#![allow(clippy::multiple_crate_versions)]
 
 mod error;
 pub use self::error::*;

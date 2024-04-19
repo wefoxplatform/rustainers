@@ -159,8 +159,8 @@ mod tests {
     #[test]
     fn should_serde() {
         let json = include_str!("../../tests/assets/podman_version.json");
-        let version = serde_json::from_str::<PodmanVersion>(json).unwrap();
-        let result = serde_json::to_string_pretty(&version).unwrap();
+        let version = serde_json::from_str::<PodmanVersion>(json).expect("podman version");
+        let result = serde_json::to_string_pretty(&version).expect("json");
         insta::assert_snapshot!(result);
     }
     #[test]

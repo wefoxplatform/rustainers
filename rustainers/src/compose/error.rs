@@ -48,6 +48,10 @@ pub enum ComposeError {
         /// The source
         source: serde_json::Error,
     },
+
+    /// Missing compose version
+    #[error("Missing compose version")]
+    MissingComposeVersion,
 }
 
 /// A temporary directory error

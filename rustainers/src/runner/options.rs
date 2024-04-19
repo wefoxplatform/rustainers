@@ -38,7 +38,7 @@ pub struct RunOption {
     pub(crate) volumes: Vec<Volume>,
 
     /// The environment variables
-    #[builder(setter(transform = |args: impl IntoIterator<Item = (impl Into<String>, impl Into<String>)>| args.into_iter().map(|(k,v)| (k.into(), v.into())).collect()))]
+    #[builder(setter(transform = |args: impl IntoIterator<Item = (impl Into<String>, impl Into<String>)>| args.into_iter().map(|(key, value)| (key.into(), value.into())).collect()))]
     pub(crate) env: IndexMap<String, String>,
 
     /// The command (override the runable command)

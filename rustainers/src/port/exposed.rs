@@ -90,16 +90,16 @@ impl ExposedPort {
 impl FromStr for ExposedPort {
     type Err = PortError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let Some((host, container)) = s.split_once(':') else {
-            return Err(PortError::InvalidPortMapping(s.to_string()));
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        let Some((host, container)) = str.split_once(':') else {
+            return Err(PortError::InvalidPortMapping(str.to_string()));
         };
         let host_port = host
             .parse()
-            .map_err(|_| PortError::InvalidPortMapping(s.to_string()))?;
+            .map_err(|_| PortError::InvalidPortMapping(str.to_string()))?;
         let container_port = container
             .parse()
-            .map_err(|_| PortError::InvalidPortMapping(s.to_string()))?;
+            .map_err(|_| PortError::InvalidPortMapping(str.to_string()))?;
 
         Ok(Self {
             host_port: Arc::new(Mutex::new(Some(host_port))),
@@ -117,10 +117,10 @@ mod tests {
 
     #[tokio::test]
     async fn should_parse_exposed_port() {
-        let s = "1234:80";
-        let result = s.parse::<ExposedPort>().unwrap();
+        let str = "1234:80";
+        let result = str.parse::<ExposedPort>().expect("port");
         check!(result.container_port() == 80);
-        check!(result.host_port().await.unwrap() == 1234);
+        check!(result.host_port().await.expect("host port") == 1234);
     }
 
     #[rstest::rstest]
@@ -130,10 +130,10 @@ mod tests {
     #[case::empty_port("1234:")]
     #[case::invalid_first_port("a:80")]
     #[case::invalid_second_port("1234:a")]
-    fn should_not_parse_invalid_exposed_port(#[case] s: &str) {
-        let result = s.parse::<ExposedPort>();
+    fn should_not_parse_invalid_exposed_port(#[case] str: &str) {
+        let result = str.parse::<ExposedPort>();
         let_assert!(Err(PortError::InvalidPortMapping(s2)) = result);
-        check!(s == s2);
+        check!(str == s2);
     }
 
     #[tokio::test]
@@ -148,11 +148,11 @@ mod tests {
 
         // bind the good port
         exposed_port.bind_port(Port(host)).await;
-        check!(exposed_port.host_port().await.unwrap() == host);
+        check!(exposed_port.host_port().await.expect("host port") == host);
 
         // should fail if no host
         let result = exposed_port.host_port().await;
-        let_assert!(Ok(Port(h)) = result);
-        check!(h == host);
+        let_assert!(Ok(Port(host_port)) = result);
+        check!(host_port == host);
     }
 }

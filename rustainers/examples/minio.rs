@@ -1,3 +1,5 @@
+//! Example to use `MinIO`
+
 use std::time::Duration;
 
 use bytes::Bytes;
@@ -54,8 +56,8 @@ async fn do_something_in_minio(minio: &Minio, bucket_name: &str) -> anyhow::Resu
 
     // list objects
     let mut stream = s3.list(None);
-    while let Some(r) = stream.next().await {
-        let obj = r?;
+    while let Some(res) = stream.next().await {
+        let obj = res?;
         info!("🎉 file: {obj:?}");
     }
 

@@ -1,3 +1,6 @@
+//! Example to show how to build a custom image
+#![allow(clippy::expect_used)]
+
 use std::process::Command;
 
 use tracing::Level;

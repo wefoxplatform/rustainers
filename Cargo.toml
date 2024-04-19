@@ -19,7 +19,6 @@ cargo = "warn"
 undocumented_unsafe_blocks = "deny"
 
 dbg_macro = "warn"
-decimal_literal_representation = "warn"
 expect_used = "warn"
 if_then_some_else_none = "warn"
 indexing_slicing = "warn"

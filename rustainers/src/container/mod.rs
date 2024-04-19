@@ -94,8 +94,8 @@ where
         }
 
         info!("🚮 Stopping container");
-        if let Err(e) = self.runner.stop(self) {
-            error!("Fail to stop the container {self} because {e}");
+        if let Err(err) = self.runner.stop(self) {
+            error!("Fail to stop the container {self} because {err}");
         }
     }
 }

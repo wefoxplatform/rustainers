@@ -13,11 +13,11 @@ pub struct VolumeName(pub(crate) String);
 impl FromStr for VolumeName {
     type Err = VolumeError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        if str.is_empty() {
             return Err(VolumeError::EmptyVolumeName);
         }
-        Ok(Self(s.to_string()))
+        Ok(Self(str.to_string()))
     }
 }
 

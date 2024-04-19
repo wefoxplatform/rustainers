@@ -24,7 +24,7 @@ pub struct ComposeRunOption {
     pub(crate) wait_services_interval: Duration,
 
     /// The environment variables
-    #[builder(setter(transform = |args: impl IntoIterator<Item = (impl Into<String>, impl Into<String>)>| args.into_iter().map(|(k,v)| (k.into(), v.into())).collect()))]
+    #[builder(setter(transform = |args: impl IntoIterator<Item = (impl Into<String>, impl Into<String>)>| args.into_iter().map(|(key, value)| (key.into(), value.into())).collect()))]
     pub(crate) env: IndexMap<String, String>,
 
     /// The compose file

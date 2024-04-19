@@ -167,7 +167,7 @@ mod tests {
             port: ExposedPort::fixed(PORT, Port::new(5432)),
             ..Default::default()
         };
-        let result = image.config().await.unwrap();
+        let result = image.config().await.expect("config");
         check!(result == "host=localhost user=postgres password=passwd port=5432 dbname=postgres");
     }
 
@@ -177,7 +177,7 @@ mod tests {
             port: ExposedPort::fixed(PORT, Port::new(5432)),
             ..Default::default()
         };
-        let result = image.url().await.unwrap();
+        let result = image.url().await.expect("url");
         check!(result == "postgresql://postgres:passwd@localhost:5432/postgres");
     }
 }

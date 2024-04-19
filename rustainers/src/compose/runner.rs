@@ -117,7 +117,9 @@ mod docker {
         ) -> Result<Services, ComposeError> {
             let mut cmd = self.compose_command()?;
             cmd.with_dir(path);
-            let compose_version = self.compose_version.expect("should have docker compose");
+            let compose_version = self
+                .compose_version
+                .ok_or(ComposeError::MissingComposeVersion)?;
 
             let services = if compose_version >= NO_TRUNC_MINIMAL_VERSION {
                 cmd.push_args(["ps", "--all", "--no-trunc", "--format", "json"]);
@@ -228,7 +230,8 @@ mod podman {
         #[test]
         fn should_serde_podman_service() {
             let json = include_str!("../../tests/assets/podman_lookup.json");
-            let services = serde_json::from_str::<Vec<PodmanComposeServiceState>>(json).unwrap();
+            let services =
+                serde_json::from_str::<Vec<PodmanComposeServiceState>>(json).expect("json");
             insta::assert_json_snapshot!(services);
         }
     }

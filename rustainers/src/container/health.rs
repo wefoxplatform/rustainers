@@ -51,7 +51,7 @@ mod tests {
     #[test]
     fn should_serde_container_health() {
         let json = "\"healthy\"\n";
-        let result = serde_json::from_str::<ContainerHealth>(json).unwrap();
+        let result = serde_json::from_str::<ContainerHealth>(json).expect("container health");
         check!(result == ContainerHealth::Healthy);
     }
 }

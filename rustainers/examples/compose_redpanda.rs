@@ -1,3 +1,5 @@
+//! Example to show how we can use red panda
+
 use std::time::Duration;
 
 use rdkafka::producer::{FutureProducer, FutureRecord};
@@ -44,7 +46,7 @@ async fn do_something_with_kafka(image: &Redpanda) -> anyhow::Result<()> {
         .send(record, Duration::from_secs(0))
         .await
         .map_err(|(err, _)| err)?;
-    println!("✉️ {sent:?}");
+    info!("✉️ {sent:?}");
 
     Ok(())
 }
