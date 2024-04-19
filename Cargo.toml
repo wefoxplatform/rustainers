@@ -6,3 +6,30 @@ resolver = "2"
 version = "0.12.0"
 edition = "2021"
 authors = ["igor.laborie@wefox.com"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+perf = "warn"
+pedantic = "warn"
+cargo = "warn"
+
+undocumented_unsafe_blocks = "deny"
+
+dbg_macro = "warn"
+decimal_literal_representation = "warn"
+expect_used = "warn"
+if_then_some_else_none = "warn"
+indexing_slicing = "warn"
+large_include_file = "warn"
+min_ident_chars = "warn"
+print_stderr = "warn"
+print_stdout = "warn"
+rc_buffer = "warn"
+rc_mutex = "warn"
+unnecessary_safety_doc = "warn"
+unwrap_used = "warn"
+
+module_name_repetitions = "allow"
