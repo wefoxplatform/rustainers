@@ -31,7 +31,7 @@ pub struct RunOption {
 
     /// The network
     #[builder(default, setter(into))]
-    pub(crate) network: Network,
+    pub(crate) network: Option<Network>,
 
     /// Volumes
     #[builder(default, setter(transform = |args: impl IntoIterator<Item = impl Into<Volume>>| args.into_iter().map(Into::into).collect()))]

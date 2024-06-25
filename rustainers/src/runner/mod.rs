@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
 use std::net::Ipv4Addr;
 use std::sync::atomic::AtomicBool;
@@ -5,7 +6,10 @@ use std::sync::Arc;
 
 use tracing::info;
 
-use crate::{Container, Network, RunnableContainer, ToRunnableContainer, VolumeName};
+use crate::{
+    Container, Network, NetworkDetails, NetworkInfo, RunnableContainer, ToRunnableContainer,
+    VolumeName,
+};
 
 mod docker;
 pub use self::docker::Docker;
@@ -224,6 +228,52 @@ impl Runner {
         Ok(())
     }
 
+    /// Get the networks for a given container
+    ///
+    /// # Errors
+    ///
+    /// Could fail if we cannot execute the inspect command
+    pub async fn inspect_networks<I>(
+        &self,
+        container: &Container<I>,
+    ) -> Result<HashMap<String, NetworkDetails>, RunnerError>
+    where
+        I: ToRunnableContainer,
+    {
+        let id = container.id;
+        let container_network = match self {
+            Self::Docker(runner) => runner.inspect_networks(id).await,
+            Self::Podman(runner) => runner.inspect_networks(id).await,
+            Self::Nerdctl(runner) => runner.inspect_networks(id).await,
+        }
+        .map_err(|source| RunnerError::InspectNetworkError {
+            runner: self.clone(),
+            container: Box::new(id),
+            source: Box::new(source),
+        })?;
+
+        Ok(container_network)
+    }
+
+    /// List all the networks
+    ///
+    /// # Errors
+    ///
+    /// Could fail if we cannot execute the inspect command
+    pub async fn list_networks(&self, name: &str) -> Result<Vec<NetworkInfo>, RunnerError> {
+        let networks = match self {
+            Self::Docker(runner) => runner.list_networks(name).await,
+            Self::Podman(runner) => runner.list_networks(name).await,
+            Self::Nerdctl(runner) => runner.list_networks(name).await,
+        }
+        .map_err(|source| RunnerError::ListNetworkError {
+            runner: self.clone(),
+            source: Box::new(source),
+        })?;
+
+        Ok(networks)
+    }
+
     /// Get the container IP for a custom network
     ///
     /// # Errors
@@ -270,6 +320,24 @@ impl Runner {
             });
         };
         Ok(ip.0)
+    }
+
+    /// Get the container host ip
+    ///
+    /// # Errors
+    ///
+    /// Could fail if we cannot execute the inspect command
+    pub async fn container_host_ip(&self) -> Result<Ipv4Addr, RunnerError> {
+        let host_ip = match self {
+            Self::Docker(runner) => runner.host().await,
+            Self::Podman(runner) => runner.host().await,
+            Self::Nerdctl(runner) => runner.host().await,
+        }
+        .map_err(|source| RunnerError::HostIpError {
+            runner: self.clone(),
+            source: Box::new(source),
+        })?;
+        Ok(host_ip.0)
     }
 
     /// Execute a command into the container

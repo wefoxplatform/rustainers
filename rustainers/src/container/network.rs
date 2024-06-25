@@ -1,3 +1,4 @@
+use ipnetwork::IpNetwork;
 use std::borrow::Cow;
 use std::fmt::Display;
 use std::net::Ipv4Addr;
@@ -137,10 +138,41 @@ mod serde_ip {
     }
 }
 
+/// A Network as described by the runner inspect command
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
-pub(crate) struct ContainerNetwork {
+pub struct NetworkDetails {
     #[serde(alias = "IPAddress")]
+    /// Network Ip address
     pub(crate) ip_address: Option<Ip>,
+
+    /// Aliases for the network
+    #[serde(alias = "Aliases")]
+    pub aliases: Vec<String>,
+
+    /// Network gateway
+    #[serde(alias = "Gateway")]
+    pub(crate) gateway: Option<Ip>,
+}
+
+/// A Network as described by the runner network command
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NetworkInfo {
+    /// Name of the network
+    #[serde(alias = "Name")]
+    pub name: String,
+
+    /// Id of the network
+    #[serde(alias = "ID")]
+    pub id: ContainerId,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub(crate) struct IpamNetworkConfig {
+    #[serde(alias = "Subnet")]
+    pub(crate) subnet: Option<IpNetwork>,
+
+    #[serde(alias = "Gateway")]
+    pub(crate) gateway: Option<Ipv4Addr>,
 }
 
 #[cfg(test)]
@@ -163,10 +195,18 @@ mod tests {
     }
 
     #[test]
-    fn should_deserialize_container_network() {
+    fn should_deserialize_network_details() {
         let json = include_str!("../../tests/assets/docker-inspect-network.json");
-        let result = serde_json::from_str::<ContainerNetwork>(json).expect("json");
+        let result = serde_json::from_str::<NetworkDetails>(json).unwrap();
         let ip = result.ip_address.expect("IP v4").0;
         check!(ip == Ipv4Addr::from([172_u8, 29, 0, 2]));
+    }
+
+    #[test]
+    fn should_deserialize_network_info() {
+        let json = include_str!("../../tests/assets/docker-network.json");
+        let result = serde_json::from_str::<NetworkInfo>(json).unwrap();
+        let id = result.id;
+        check!(id == "b79a7ee6fe69".parse::<ContainerId>().unwrap());
     }
 }

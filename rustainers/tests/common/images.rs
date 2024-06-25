@@ -26,8 +26,8 @@ impl ToRunnableContainer for InternalWebServer {
 
 // Curl
 #[derive(Debug)]
-struct Curl {
-    url: String,
+pub struct Curl {
+    pub url: String,
 }
 
 /// cURL in a container

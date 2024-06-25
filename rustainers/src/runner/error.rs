@@ -76,9 +76,31 @@ pub enum RunnerError {
     },
 
     /// Fail to retrieve container IP in a specific network
+    #[error("Fail to inspect container {container} networks because {source}\nrunner: {runner}")]
+    InspectNetworkError {
+        /// The runner
+        runner: Runner,
+
+        /// The container,
+        container: Box<ContainerId>,
+        /// The source error
+        source: Box<ContainerError>,
+    },
+
+    /// Fail to retrieve container IP in a specific network
+    #[error("Fail to list network because {source}\nrunner: {runner}")]
+    ListNetworkError {
+        /// The runner
+        runner: Runner,
+
+        /// The source error
+        source: Box<ContainerError>,
+    },
+
+    /// Fail to retrieve container IP in a specific network
     #[error(
-        "Fail to retrieve container {container} IP for network '{network}' because {source}\nrunner: {runner}"
-    )]
+            "Fail to retrieve container {container} IP for network '{network}' because {source}\nrunner: {runner}"
+        )]
     FindNetworkIpError {
         /// The runner
         runner: Runner,
@@ -119,6 +141,15 @@ pub enum RunnerError {
         runner: Runner,
         /// The container id
         id: ContainerId,
+        /// The source error
+        source: Box<ContainerError>,
+    },
+
+    /// Fail to stop a container
+    #[error("Can not fetch host because {source}\nrunner: {runner}")]
+    HostIpError {
+        /// The runner
+        runner: Runner,
         /// The source error
         source: Box<ContainerError>,
     },

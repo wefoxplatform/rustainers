@@ -1,5 +1,10 @@
+use ipnetwork::IpNetwork;
+use std::borrow::Cow;
+use std::collections::HashMap;
+use std::env;
 use std::fmt::{Debug, Display};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::path::Path;
 use std::time::Duration;
 
 use async_trait::async_trait;
@@ -12,9 +17,9 @@ use tracing::{debug, info, trace, warn};
 use crate::cmd::Cmd;
 use crate::io::StdIoKind;
 use crate::{
-    ContainerHealth, ContainerId, ContainerNetwork, ContainerProcess, ContainerState,
-    ContainerStatus, ExposedPort, HealthCheck, Network, Port, RunnableContainer, Volume,
-    WaitStrategy,
+    ContainerHealth, ContainerId, ContainerProcess, ContainerState, ContainerStatus, ExposedPort,
+    HealthCheck, Ip, IpamNetworkConfig, Network, NetworkDetails, NetworkInfo, Port,
+    RunnableContainer, Volume, WaitStrategy,
 };
 
 use super::{ContainerError, RunOption};
@@ -185,9 +190,33 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         &self,
         id: ContainerId,
         network: &str,
-    ) -> Result<ContainerNetwork, ContainerError> {
+    ) -> Result<NetworkDetails, ContainerError> {
         let path = format!(".NetworkSettings.Networks.{network}");
         self.inspect(id, &path).await
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn inspect_networks(
+        &self,
+        id: ContainerId,
+    ) -> Result<HashMap<String, NetworkDetails>, ContainerError> {
+        let path = ".NetworkSettings.Networks".to_string();
+        self.inspect(id, &path).await
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_networks(&self, name: &str) -> Result<Vec<NetworkInfo>, ContainerError> {
+        let mut cmd = self.command();
+        cmd.push_args([
+            "network",
+            "ls",
+            "--no-trunc",
+            "--filter",
+            &format!("type={name}"),
+            "--format={{json .}}",
+        ]);
+        let result = cmd.json_stream::<NetworkInfo>().await?;
+        Ok(result)
     }
 
     #[tracing::instrument(level = "debug", skip(self, id), fields(runner = %self, id = %id))]
@@ -285,6 +314,80 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         }
 
         Ok(())
+    }
+
+    fn get_docker_host(&self) -> Option<String> {
+        env::var("DOCKER_HOST").ok()
+    }
+
+    #[tracing::instrument(skip(self),fields(runner = %self))]
+    async fn find_host_network(&self) -> Result<Option<Network>, ContainerError> {
+        // If we're docker in docker running on a custom network, we need to inherit the
+        // network settings, so we can access the resulting container.
+        let docker_host = self.host().await?;
+        let custom_networks = self.list_networks("custom").await?;
+        for network in custom_networks {
+            let path = ".IPAM.Config".to_string();
+            let subnets: Vec<IpamNetworkConfig> = self.inspect(network.id, &path).await?;
+            let subnets = subnets
+                .into_iter()
+                .filter_map(|x| x.subnet)
+                .collect::<Vec<IpNetwork>>();
+            info!("{subnets:?}");
+            info!("{docker_host:?}");
+            for subnet in subnets {
+                if subnet.contains(IpAddr::V4(docker_host.0)) {
+                    //TODO: double check this
+                    // should be Network::Customer(network.name)
+                    let network_id = Network::Custom(network.name);
+                    info!("{network_id}");
+                    return Ok(Some(network_id));
+                }
+            }
+        }
+        Ok(None)
+    }
+
+    #[tracing::instrument(skip(self),fields(runner = %self))]
+    async fn host(&self) -> Result<Ip, ContainerError> {
+        if self.is_inside_container() {
+            if let Some(ip_address) = self.default_gateway_ip().await? {
+                Ok(ip_address)
+            } else {
+                Ok(Ip(Ipv4Addr::LOCALHOST))
+            }
+        } else {
+            Ok(Ip(Ipv4Addr::LOCALHOST))
+        }
+    }
+
+    #[tracing::instrument(skip(self), fields(runner = %self))]
+    async fn default_gateway_ip(&self) -> Result<Option<Ip>, ContainerError> {
+        let gateways = if let Ok(hostname_alias) = env::var("HOSTNAME") {
+            // TODO: don't fail here
+            let id = hostname_alias.parse::<ContainerId>()?;
+            let networks = self.inspect_networks(id).await?;
+            networks
+                .into_values()
+                .filter_map(|v| {
+                    v.aliases
+                        .contains(&hostname_alias)
+                        .then_some(v.gateway)
+                        .and_then(|x| x)
+                })
+                .collect::<Vec<Ip>>()
+        } else {
+            vec![]
+        };
+        if let [gateway] = gateways[..] {
+            Ok(Some(gateway))
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn is_inside_container(&self) -> bool {
+        Path::new("/.dockerenv").exists()
     }
 
     async fn watch_logs(
@@ -395,9 +498,24 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
                     .await?
             }
             // Need to create and start the container
-            Some((ContainerStatus::Unknown | ContainerStatus::Removing, _)) | None => {
+            Some((ContainerStatus::Unknown | ContainerStatus::Removing, _)) => {
                 self.create_and_start(CreateAndStartOption::new(image, &options))
                     .await?
+            }
+            None => {
+                if options.network.is_none() & self.get_docker_host().is_none() {
+                    // find the host_network
+                    let host_network = self.find_host_network().await?;
+                    //Find a better alternative
+                    let mut options = options.clone();
+                    options.network = host_network;
+                    self.create_and_start(CreateAndStartOption::new(image, &options))
+                        .await?
+                } else {
+                    // If the user has specified a network, we'll assume the user knows best
+                    self.create_and_start(CreateAndStartOption::new(image, &options))
+                        .await?
+                }
             }
         };
 
@@ -460,7 +578,7 @@ pub(crate) struct CreateAndStartOption<'a> {
     ports: &'a [ExposedPort],
     remove: bool,
     name: Option<&'a str>,
-    network: &'a Network,
+    network: Cow<'a, Network>,
     volumes: &'a [Volume],
     env: IndexMap<&'a str, &'a str>,
     command: &'a [String],
@@ -478,7 +596,10 @@ impl<'a> CreateAndStartOption<'a> {
         let ports = &image.port_mappings;
         let remove = option.remove;
         let name = option.name();
-        let network = &option.network;
+        let network = option
+            .network
+            .as_ref()
+            .map_or_else(|| Cow::Owned(Network::default()), Cow::Borrowed);
         let volumes = option.volumes.as_slice();
         let env = image
             .env
