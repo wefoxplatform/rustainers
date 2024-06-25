@@ -1,3 +1,4 @@
+use std::env::VarError;
 use std::path::PathBuf;
 
 use crate::cmd::CommandError;
@@ -227,4 +228,16 @@ pub enum ContainerError {
     /// Volume error
     #[error(transparent)]
     VolumeError(#[from] VolumeError),
+
+    /// Environment variable error
+    #[error(transparent)]
+    EnvVarError(#[from] VarError),
+
+    /// Environment variable error
+    #[error("No gateway")]
+    NoGateway,
+
+    /// Environment variable error
+    #[error("No host network")]
+    NoHostNetwork,
 }

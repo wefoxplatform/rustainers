@@ -1,4 +1,3 @@
-use ipnetwork::IpNetwork;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::env;
@@ -326,63 +325,58 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         // network settings, so we can access the resulting container.
         let docker_host = self.host().await?;
         let custom_networks = self.list_networks("custom").await?;
+        let mut networks = vec![];
         for network in custom_networks {
             let path = ".IPAM.Config".to_string();
-            let subnets: Vec<IpamNetworkConfig> = self.inspect(network.id, &path).await?;
-            let subnets = subnets
-                .into_iter()
-                .filter_map(|x| x.subnet)
-                .collect::<Vec<IpNetwork>>();
-            info!("{subnets:?}");
-            info!("{docker_host:?}");
-            for subnet in subnets {
-                if subnet.contains(IpAddr::V4(docker_host.0)) {
-                    //TODO: double check this
-                    // should be Network::Customer(network.name)
-                    let network_id = Network::Custom(network.name);
-                    info!("{network_id}");
-                    return Ok(Some(network_id));
-                }
-            }
+            let network_configs: Vec<IpamNetworkConfig> = self.inspect(network.id, &path).await?;
+            networks.extend(
+                network_configs
+                    .into_iter()
+                    .filter(|x| {
+                        if let Some(subnet) = x.subnet {
+                            subnet.contains(IpAddr::V4(docker_host.0))
+                        } else {
+                            false
+                        }
+                    })
+                    .map(|_| Network::Custom(network.name.clone()))
+                    .collect::<Vec<Network>>(),
+            );
         }
-        Ok(None)
+        if let [network] = &networks[..] {
+            Ok(Some(network.clone()))
+        } else {
+            Ok(None)
+        }
     }
 
     #[tracing::instrument(skip(self),fields(runner = %self))]
     async fn host(&self) -> Result<Ip, ContainerError> {
         if self.is_inside_container() {
-            if let Some(ip_address) = self.default_gateway_ip().await? {
-                Ok(ip_address)
-            } else {
-                Ok(Ip(Ipv4Addr::LOCALHOST))
-            }
+            self.default_gateway_ip().await
         } else {
             Ok(Ip(Ipv4Addr::LOCALHOST))
         }
     }
 
     #[tracing::instrument(skip(self), fields(runner = %self))]
-    async fn default_gateway_ip(&self) -> Result<Option<Ip>, ContainerError> {
-        let gateways = if let Ok(hostname_alias) = env::var("HOSTNAME") {
-            // TODO: don't fail here
-            let id = hostname_alias.parse::<ContainerId>()?;
-            let networks = self.inspect_networks(id).await?;
-            networks
-                .into_values()
-                .filter_map(|v| {
-                    v.aliases
-                        .contains(&hostname_alias)
-                        .then_some(v.gateway)
-                        .and_then(|x| x)
-                })
-                .collect::<Vec<Ip>>()
-        } else {
-            vec![]
-        };
+    async fn default_gateway_ip(&self) -> Result<Ip, ContainerError> {
+        let hostname = env::var("HOSTNAME")?;
+        let host_id = hostname.parse::<ContainerId>()?;
+        let networks = self.inspect_networks(host_id).await?;
+        let gateways = networks
+            .into_values()
+            .filter_map(|v| {
+                v.aliases
+                    .contains(&hostname)
+                    .then_some(v.gateway)
+                    .and_then(|x| x)
+            })
+            .collect::<Vec<Ip>>();
         if let [gateway] = gateways[..] {
-            Ok(Some(gateway))
+            Ok(gateway)
         } else {
-            Ok(None)
+            Err(ContainerError::NoGateway)
         }
     }
 
@@ -503,9 +497,11 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
                     .await?
             }
             None => {
+                // If the user has specified a network, we'll assume the user knows best
                 if options.network.is_none() & self.get_docker_host().is_none() {
-                    // find the host_network
+                    // Otherwise we'll try to find the docker host for dind usage.
                     let host_network = self.find_host_network().await?;
+
                     //Find a better alternative
                     let mut options = options.clone();
                     options.network = host_network;
