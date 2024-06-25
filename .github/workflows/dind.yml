@@ -1,0 +1,22 @@
+on: [push]
+
+name: Docker in docker
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    container:
+      image: public.ecr.aws/docker/library/rust:1.76
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup container
+        run: |
+          .devcontainer/dev-container-setup.sh
+      - name: Build
+        run: cargo build --verbose
+      - name: Tests
+        run: cargo test -- --test should_work_dind --nocapture
