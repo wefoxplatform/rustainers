@@ -17,7 +17,7 @@ use crate::{Id, IdError};
 ///
 /// Note that the [`Display`] view truncate the id,
 /// to have the full [`String`] you need to use the [`Into`] or [`From`] implementation.
-#[derive(Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Hash)]
 pub struct ContainerId(Id);
 
 impl From<ContainerId> for String {

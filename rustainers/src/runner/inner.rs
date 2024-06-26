@@ -17,7 +17,7 @@ use crate::cmd::Cmd;
 use crate::io::StdIoKind;
 use crate::{
     ContainerHealth, ContainerId, ContainerProcess, ContainerState, ContainerStatus, ExposedPort,
-    HealthCheck, Ip, IpamNetworkConfig, Network, NetworkDetails, NetworkInfo, Port,
+    HealthCheck, HostContainer, Ip, IpamNetworkConfig, Network, NetworkDetails, NetworkInfo, Port,
     RunnableContainer, Volume, WaitStrategy,
 };
 
@@ -190,8 +190,12 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         id: ContainerId,
         network: &str,
     ) -> Result<NetworkDetails, ContainerError> {
-        let path = format!(".NetworkSettings.Networks.{network}");
-        self.inspect(id, &path).await
+        let mut networks = self.inspect_networks(id).await?;
+        if let Some((_, network)) = networks.remove_entry(&network.to_string()) {
+            Ok(network)
+        } else {
+            Err(ContainerError::NoNetwork)
+        }
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
@@ -200,6 +204,15 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         id: ContainerId,
     ) -> Result<HashMap<String, NetworkDetails>, ContainerError> {
         let path = ".NetworkSettings.Networks".to_string();
+        self.inspect(id, &path).await
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn inspect_host_containers(
+        &self,
+        id: ContainerId,
+    ) -> Result<HashMap<ContainerId, HostContainer>, ContainerError> {
+        let path = ".Containers".to_string();
         self.inspect(id, &path).await
     }
 
@@ -364,15 +377,23 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         let hostname = env::var("HOSTNAME")?;
         let host_id = hostname.parse::<ContainerId>()?;
         let networks = self.inspect_networks(host_id).await?;
-        let gateways = networks
-            .into_values()
-            .filter_map(|v| {
-                v.aliases
-                    .contains(&hostname)
-                    .then_some(v.gateway)
-                    .and_then(|x| x)
-            })
-            .collect::<Vec<Ip>>();
+        let mut gateways = vec![];
+        for (_, network) in networks {
+            // let network_id = name.parse::<ContainerId>()?;
+            if let Some(network_id) = network.id {
+                let containers = self.inspect_host_containers(network_id).await?;
+                // Due to short id vs long id
+                let container_ids = containers
+                    .keys()
+                    .map(std::string::ToString::to_string)
+                    .collect::<Vec<String>>();
+                if container_ids.contains(&hostname) {
+                    if let Some(gateway) = network.gateway {
+                        gateways.push(gateway);
+                    }
+                }
+            }
+        }
         if let [gateway] = gateways[..] {
             Ok(gateway)
         } else {

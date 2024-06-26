@@ -140,30 +140,38 @@ mod serde_ip {
 
 /// A Network as described by the runner inspect command
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
-pub struct NetworkDetails {
+pub(crate) struct NetworkDetails {
     #[serde(alias = "IPAddress")]
     /// Network Ip address
     pub(crate) ip_address: Option<Ip>,
 
-    /// Aliases for the network
-    #[serde(alias = "Aliases")]
-    pub aliases: Vec<String>,
-
     /// Network gateway
     #[serde(alias = "Gateway")]
     pub(crate) gateway: Option<Ip>,
+
+    /// Network gateway
+    #[serde(alias = "NetworkID")]
+    pub(crate) id: Option<ContainerId>,
+}
+
+/// A Network as described by the runner inspect command
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub(crate) struct HostContainer {
+    #[serde(alias = "Name")]
+    /// Network Ip address
+    pub(crate) name: Option<String>,
 }
 
 /// A Network as described by the runner network command
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct NetworkInfo {
+pub(crate) struct NetworkInfo {
     /// Name of the network
     #[serde(alias = "Name")]
-    pub name: String,
+    pub(crate) name: String,
 
     /// Id of the network
     #[serde(alias = "ID")]
-    pub id: ContainerId,
+    pub(crate) id: ContainerId,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -178,8 +186,9 @@ pub(crate) struct IpamNetworkConfig {
 #[cfg(test)]
 #[allow(clippy::ignored_unit_patterns)]
 mod tests {
-    use assert2::check;
+    use assert2::{check, let_assert};
     use rstest::rstest;
+    use std::collections::HashMap;
 
     use super::*;
 
@@ -208,5 +217,17 @@ mod tests {
         let result = serde_json::from_str::<NetworkInfo>(json).unwrap();
         let id = result.id;
         check!(id == "b79a7ee6fe69".parse::<ContainerId>().unwrap());
+    }
+
+    #[test]
+    fn should_deserialize_host_containers() {
+        let json = include_str!("../../tests/assets/docker-inspect-containers.json");
+        let result = serde_json::from_str::<HashMap<ContainerId, HostContainer>>(json).unwrap();
+        let id = "f7bbcdb277f7cc880b84219c959a5d28169ebb8c41dd32c08a9195a3c79e8d5e"
+            .parse::<ContainerId>()
+            .unwrap();
+        let_assert!(Some(host) = result.get(&id));
+        let_assert!(Some(container_name) = &host.name);
+        check!(container_name == &"dockerindocker".to_string());
     }
 }

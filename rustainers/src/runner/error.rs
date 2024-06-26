@@ -239,5 +239,5 @@ pub enum ContainerError {
 
     /// Environment variable error
     #[error("No host network")]
-    NoHostNetwork,
+    NoNetwork,
 }
