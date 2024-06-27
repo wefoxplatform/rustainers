@@ -519,20 +519,18 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             }
             None => {
                 // If the user has specified a network, we'll assume the user knows best
-                if options.network.is_none() & self.get_docker_host().is_none() {
+                let options = if options.network.is_none() & self.get_docker_host().is_none() {
                     // Otherwise we'll try to find the docker host for dind usage.
                     let host_network = self.find_host_network().await?;
-
-                    //Find a better alternative
+                    // Not ideal to clone the options to modify it
                     let mut options = options.clone();
                     options.network = host_network;
-                    self.create_and_start(CreateAndStartOption::new(image, &options))
-                        .await?
+                    options
                 } else {
-                    // If the user has specified a network, we'll assume the user knows best
-                    self.create_and_start(CreateAndStartOption::new(image, &options))
-                        .await?
-                }
+                    options.clone()
+                };
+                self.create_and_start(CreateAndStartOption::new(image, &options))
+                    .await?
             }
         };
 

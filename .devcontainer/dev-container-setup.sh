@@ -13,7 +13,6 @@ apt-get install -y -qq \
   unzip \
   time \
   gettext \
-  protobuf-compiler \
   ca-certificates \
   gnupg \
   lsb-release
@@ -32,8 +31,6 @@ apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugi
 
 # Clean up
 time rm -rf /var/lib/apt/lists
-
-protoc --version # Ensure compiler version is 3+
 
 # Install Rust complementary tool
 rustup --version
