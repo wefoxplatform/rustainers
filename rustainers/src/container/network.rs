@@ -206,27 +206,31 @@ mod tests {
     #[test]
     fn should_deserialize_network_details() {
         let json = include_str!("../../tests/assets/docker-inspect-network.json");
-        let result = serde_json::from_str::<NetworkDetails>(json).unwrap();
-        let ip = result.ip_address.expect("IP v4").0;
+        let result = serde_json::from_str::<NetworkDetails>(json);
+        let_assert!(Ok(network_detail) = result);
+        let ip = network_detail.ip_address.expect("IP v4").0;
         check!(ip == Ipv4Addr::from([172_u8, 29, 0, 2]));
     }
 
     #[test]
     fn should_deserialize_network_info() {
         let json = include_str!("../../tests/assets/docker-network.json");
-        let result = serde_json::from_str::<NetworkInfo>(json).unwrap();
-        let id = result.id;
-        check!(id == "b79a7ee6fe69".parse::<ContainerId>().unwrap());
+        let result = serde_json::from_str::<NetworkInfo>(json);
+        let_assert!(Ok(network_info) = result);
+        let expected = "b79a7ee6fe69".parse::<ContainerId>();
+        let_assert!(Ok(expected_id) = expected);
+        check!(network_info.id == expected_id);
     }
 
     #[test]
     fn should_deserialize_host_containers() {
         let json = include_str!("../../tests/assets/docker-inspect-containers.json");
-        let result = serde_json::from_str::<HashMap<ContainerId, HostContainer>>(json).unwrap();
+        let result = serde_json::from_str::<HashMap<ContainerId, HostContainer>>(json);
+        let_assert!(Ok(containers) = result);
         let id = "f7bbcdb277f7cc880b84219c959a5d28169ebb8c41dd32c08a9195a3c79e8d5e"
-            .parse::<ContainerId>()
-            .unwrap();
-        let_assert!(Some(host) = result.get(&id));
+            .parse::<ContainerId>();
+        let_assert!(Ok(container_id) = id);
+        let_assert!(Some(host) = containers.get(&container_id));
         let_assert!(Some(container_name) = &host.name);
         check!(container_name == &"dockerindocker".to_string());
     }

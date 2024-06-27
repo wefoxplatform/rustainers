@@ -92,7 +92,7 @@ async fn should_work_dind(runner: &Runner) -> anyhow::Result<()> {
         .start_with_options(InternalWebServer, server_options)
         .await?;
 
-    let host = runner.container_host_ip().await.unwrap();
+    let_assert!(Ok(host) = runner.container_host_ip().await);
     let client_options = RunOption::builder()
         .with_name(format!("client_{id}"))
         .build();

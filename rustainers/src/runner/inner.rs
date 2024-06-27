@@ -191,7 +191,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         network: &str,
     ) -> Result<NetworkDetails, ContainerError> {
         let mut networks = self.inspect_networks(id).await?;
-        if let Some((_, network)) = networks.remove_entry(&network.to_string()) {
+        if let Some((_, network)) = networks.remove_entry(network) {
             Ok(network)
         } else {
             Err(ContainerError::NoNetwork)
