@@ -138,7 +138,7 @@ mod serde_ip {
     }
 }
 
-/// A Network as described by the runner inspect command
+/// A Network as described by the runner inspect command on .NetworkSettings.Networks
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub(crate) struct NetworkDetails {
     #[serde(alias = "IPAddress")]
@@ -149,16 +149,16 @@ pub(crate) struct NetworkDetails {
     #[serde(alias = "Gateway")]
     pub(crate) gateway: Option<Ip>,
 
-    /// Network gateway
+    /// Network id
     #[serde(alias = "NetworkID")]
     pub(crate) id: Option<ContainerId>,
 }
 
-/// A Network as described by the runner inspect command
+/// A Container as described by the runner inspect command on .Containers
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub(crate) struct HostContainer {
     #[serde(alias = "Name")]
-    /// Network Ip address
+    /// Container name
     pub(crate) name: Option<String>,
 }
 

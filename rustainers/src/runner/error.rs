@@ -98,10 +98,8 @@ pub enum RunnerError {
         source: Box<ContainerError>,
     },
 
-    /// Fail to retrieve container IP in a specific network
-    #[error(
-            "Fail to retrieve container {container} IP for network '{network}' because {source}\nrunner: {runner}"
-        )]
+    /// Fail to retrieve network IP
+    #[error("Fail to retrieve network named '{network}' IP for container {container} because {source}\nrunner: {runner}")]
     FindNetworkIpError {
         /// The runner
         runner: Runner,
@@ -146,7 +144,7 @@ pub enum RunnerError {
         source: Box<ContainerError>,
     },
 
-    /// Fail to stop a container
+    /// Fail to retrieve host ip address
     #[error("Can not fetch host because {source}\nrunner: {runner}")]
     HostIpError {
         /// The runner
@@ -233,11 +231,11 @@ pub enum ContainerError {
     #[error(transparent)]
     EnvVarError(#[from] VarError),
 
-    /// Environment variable error
+    /// No gateway error
     #[error("No gateway")]
     NoGateway,
 
-    /// Environment variable error
+    /// No network error
     #[error("No host network")]
     NoNetwork,
 }
