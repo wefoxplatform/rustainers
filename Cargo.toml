@@ -12,9 +12,9 @@ unsafe_code = "forbid"
 missing_docs = "warn"
 
 [workspace.lints.clippy]
-perf = "warn"
-pedantic = "warn"
-cargo = "warn"
+perf = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
 
 undocumented_unsafe_blocks = "deny"
 
