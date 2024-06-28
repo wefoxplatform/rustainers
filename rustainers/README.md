@@ -57,7 +57,7 @@ async fn do_something_with_postgres(url: String) -> anyhow::Result<()> {
 }
 ```
 
-## Livecycle of a container
+## Lifecycle of a container
 
 When you start a _runnable image_, the runner first check the state of the container.
 It may already exists, or we may need to create it.
