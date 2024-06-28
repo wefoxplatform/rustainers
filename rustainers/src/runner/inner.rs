@@ -191,11 +191,10 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         network: &str,
     ) -> Result<NetworkDetails, ContainerError> {
         let mut networks = self.inspect_networks(id).await?;
-        if let Some((_, network)) = networks.remove_entry(network) {
-            Ok(network)
-        } else {
-            Err(ContainerError::NoNetwork)
-        }
+        networks
+            .remove_entry(network)
+            .map(|(_, network)| network)
+            .ok_or(ContainerError::NoNetwork)
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
@@ -345,14 +344,15 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             networks.extend(
                 network_configs
                     .into_iter()
-                    .filter(|x| {
-                        if let Some(subnet) = x.subnet {
-                            subnet.contains(IpAddr::V4(docker_host.0))
-                        } else {
-                            false
-                        }
+                    .filter_map(|x| {
+                        x.subnet.map(|x| {
+                            x.contains(IpAddr::V4(docker_host.0))
+                                .then(|| Network::Custom(network.name.clone()))
+                                .ok_or(0)
+                        })
                     })
-                    .map(|_| Network::Custom(network.name.clone()))
+                    // Chained filtermaps is not ideal
+                    .filter_map(std::result::Result::ok)
                     .collect::<Vec<Network>>(),
             );
         }
@@ -377,28 +377,27 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         let hostname = env::var("HOSTNAME")?;
         let host_id = hostname.parse::<ContainerId>()?;
         let networks = self.inspect_networks(host_id).await?;
-        let mut gateways = vec![];
-        for (_, network) in networks {
-            // let network_id = name.parse::<ContainerId>()?;
-            if let Some(network_id) = network.id {
-                let containers = self.inspect_host_containers(network_id).await?;
-                // Due to short id vs long id
-                let container_ids = containers
-                    .keys()
-                    .map(std::string::ToString::to_string)
-                    .collect::<Vec<String>>();
-                if container_ids.contains(&hostname) {
-                    if let Some(gateway) = network.gateway {
-                        gateways.push(gateway);
-                    }
-                }
+        // Filter when values are defined
+        let networks = networks
+            .iter()
+            .filter_map(|(_, network)| match (network.id, network.gateway) {
+                (Some(id), Some(gateway)) => Some((id, gateway)),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        let mut gateway: Option<Ip> = None;
+        for (network_id, net_gateway) in networks {
+            let containers = self.inspect_host_containers(network_id).await?;
+            // Due to short id vs long id
+            if containers
+                .keys()
+                .any(|containe_id| hostname == containe_id.to_string())
+            {
+                gateway = Some(net_gateway);
+                break;
             }
         }
-        if let [gateway] = gateways[..] {
-            Ok(gateway)
-        } else {
-            Err(ContainerError::NoGateway)
-        }
+        gateway.ok_or(ContainerError::NoGateway)
     }
 
     fn is_inside_container(&self) -> bool {
@@ -518,17 +517,13 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
                     .await?
             }
             None => {
+                let mut options = Cow::Borrowed(&options);
                 // If the user has specified a network, we'll assume the user knows best
-                let options = if options.network.is_none() & self.get_docker_host().is_none() {
+                if options.network.is_none() & self.get_docker_host().is_none() {
                     // Otherwise we'll try to find the docker host for dind usage.
                     let host_network = self.find_host_network().await?;
-                    // Not ideal to clone the options to modify it
-                    let mut options = options.clone();
-                    options.network = host_network;
-                    options
-                } else {
-                    options.clone()
-                };
+                    options.to_mut().network = host_network;
+                }
                 self.create_and_start(CreateAndStartOption::new(image, &options))
                     .await?
             }

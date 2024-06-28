@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use tracing::{debug, info};
 
 use crate::cmd::Cmd;
@@ -33,6 +34,10 @@ pub struct Podman {
 impl InnerRunner for Podman {
     fn command(&self) -> Cmd<'static> {
         Cmd::new("podman")
+    }
+
+    fn is_inside_container(&self) -> bool {
+        Path::new("/run/.containerenv").exists()
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
