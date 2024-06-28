@@ -230,7 +230,8 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         network_id: ContainerId,
     ) -> Result<Vec<IpamNetworkConfig>, ContainerError> {
         let path = ".IPAM.Config".to_string();
-        self.inspect(network_id, &path).await
+        let results: Vec<Option<IpamNetworkConfig>> = self.inspect(network_id, &path).await?;
+        Ok(results.into_iter().flatten().collect())
     }
 
     #[tracing::instrument(level = "debug", skip(self, id), fields(runner = %self, id = %id))]
