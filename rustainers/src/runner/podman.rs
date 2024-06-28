@@ -7,7 +7,10 @@ use tracing::{debug, info};
 
 use crate::cmd::Cmd;
 use crate::version::Version;
+use crate::ContainerId;
 use crate::ContainerProcess;
+use crate::IpamNetworkConfig;
+use crate::NetworkInfo;
 
 use super::{ContainerError, InnerRunner, RunnerError};
 
@@ -36,8 +39,27 @@ impl InnerRunner for Podman {
         Cmd::new("podman")
     }
 
+    #[tracing::instrument(level = "info", skip(self), fields(runner = %self))]
     fn is_inside_container(&self) -> bool {
         Path::new("/run/.containerenv").exists()
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_custom_networks(&self) -> Result<Vec<NetworkInfo>, ContainerError> {
+        let mut cmd: Cmd<'_> = self.command();
+        cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
+        let mut result = cmd.json_stream::<NetworkInfo>().await?;
+        result.retain(|x| ["podman"].contains(&x.name.as_str()));
+        Ok(result)
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_network_config(
+        &self,
+        network_id: ContainerId,
+    ) -> Result<Vec<IpamNetworkConfig>, ContainerError> {
+        let path = ".Subnets".to_string();
+        self.inspect(network_id, &path).await
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]

@@ -216,18 +216,21 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
-    async fn list_networks(&self, name: &str) -> Result<Vec<NetworkInfo>, ContainerError> {
+    async fn list_custom_networks(&self) -> Result<Vec<NetworkInfo>, ContainerError> {
         let mut cmd = self.command();
-        cmd.push_args([
-            "network",
-            "ls",
-            "--no-trunc",
-            "--filter",
-            &format!("type={name}"),
-            "--format={{json .}}",
-        ]);
-        let result = cmd.json_stream::<NetworkInfo>().await?;
+        cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
+        let mut result = cmd.json_stream::<NetworkInfo>().await?;
+        result.retain(|x| ["bridge", "host", "none"].contains(&x.name.as_str()));
         Ok(result)
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_network_config(
+        &self,
+        network_id: ContainerId,
+    ) -> Result<Vec<IpamNetworkConfig>, ContainerError> {
+        let path = ".IPAM.Config".to_string();
+        self.inspect(network_id, &path).await
     }
 
     #[tracing::instrument(level = "debug", skip(self, id), fields(runner = %self, id = %id))]
@@ -336,11 +339,10 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         // If we're docker in docker running on a custom network, we need to inherit the
         // network settings, so we can access the resulting container.
         let docker_host = self.host().await?;
-        let custom_networks = self.list_networks("custom").await?;
+        let custom_networks = self.list_custom_networks().await?;
         let mut networks = vec![];
         for network in custom_networks {
-            let path = ".IPAM.Config".to_string();
-            let network_configs: Vec<IpamNetworkConfig> = self.inspect(network.id, &path).await?;
+            let network_configs = self.list_network_config(network.id).await?;
             networks.extend(
                 network_configs
                     .into_iter()
