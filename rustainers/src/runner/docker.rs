@@ -11,7 +11,7 @@ use crate::version::Version;
 use super::InnerRunner;
 
 const MINIMAL_VERSION: Version = Version::new(1, 20);
-const COMPOSE_MINIMAL_VERSION: Version = Version::new(2, 10);
+const COMPOSE_MINIMAL_VERSION: Version = Version::new(2, 6);
 
 /// A Docker runner
 ///
