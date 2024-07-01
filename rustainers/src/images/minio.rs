@@ -58,6 +58,13 @@ impl Minio {
         image.set_digest(digest);
         Self { image, ..self }
     }
+
+    /// Set the port mapping
+    #[must_use]
+    pub fn with_port(mut self, port: ExposedPort) -> Self {
+        self.port = port;
+        self
+    }
 }
 
 impl Minio {
@@ -78,30 +85,6 @@ impl Minio {
     pub fn secret_access_key(&self) -> &str {
         "minioadmin"
     }
-
-    /// Get endpoint URL
-    ///
-    /// # Errors
-    ///
-    /// Could fail if the port is not bind
-    pub async fn endpoint(&self) -> Result<String, PortError> {
-        let port = self.port.host_port().await?;
-        let url = format!("http://localhost:{port}");
-
-        Ok(url)
-    }
-
-    /// Get console endpoint URL
-    ///
-    /// # Errors
-    ///
-    /// Could fail if the console port is not bind
-    pub async fn console_endpoint(&self) -> Result<String, PortError> {
-        let port = self.console_port.host_port().await?;
-        let url = format!("http://localhost:{port}");
-
-        Ok(url)
-    }
 }
 
 impl Container<Minio> {
@@ -118,6 +101,33 @@ impl Container<Minio> {
             .await?;
 
         Ok(())
+    }
+
+    /// Get endpoint URL
+    ///
+    /// # Errors
+    ///
+    /// Could fail if the port is not bind
+    pub async fn endpoint(&self) -> Result<String, PortError> {
+        let port = self.port.host_port().await?;
+
+        let host_ip = self.runner.container_host_ip().await?;
+        let url = format!("http://{host_ip}:{port}");
+
+        Ok(url)
+    }
+
+    /// Get console endpoint URL
+    ///
+    /// # Errors
+    ///
+    /// Could fail if the console port is not bind
+    pub async fn console_endpoint(&self) -> Result<String, PortError> {
+        let port = self.console_port.host_port().await?;
+        let host_ip = self.runner.container_host_ip().await?;
+        let url = format!("http://{host_ip}:{port}");
+
+        Ok(url)
     }
 }
 
@@ -144,24 +154,5 @@ impl ToRunnableContainer for Minio {
             .with_command(["server", DATA])
             .with_port_mappings([self.port.clone(), self.console_port.clone()])
             .build()
-    }
-}
-
-#[cfg(test)]
-#[allow(clippy::ignored_unit_patterns)]
-mod tests {
-
-    use super::*;
-    use assert2::{check, let_assert};
-
-    #[tokio::test]
-    async fn should_create_endpoint() {
-        let image = Minio {
-            port: ExposedPort::fixed(PORT, Port::new(9123)),
-            ..Default::default()
-        };
-        let result = image.endpoint().await;
-        let_assert!(Ok(endpoint) = result);
-        check!(endpoint == "http://localhost:9123");
     }
 }

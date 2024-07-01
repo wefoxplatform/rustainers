@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use crate::{
-    ExposedPort, ImageName, Port, PortError, RunnableContainer, RunnableContainerBuilder,
-    ToRunnableContainer, WaitStrategy,
+    Container, ExposedPort, ImageName, Port, PortError, RunnableContainer,
+    RunnableContainerBuilder, ToRunnableContainer, WaitStrategy,
 };
 
 const MOSQUITTO_IMAGE: &ImageName = &ImageName::new("eclipse-mosquitto");
@@ -51,9 +51,16 @@ impl Mosquitto {
         image.set_digest(digest);
         Self { image, ..self }
     }
+
+    /// Set the port mapping
+    #[must_use]
+    pub fn with_port(mut self, port: ExposedPort) -> Self {
+        self.port = port;
+        self
+    }
 }
 
-impl Mosquitto {
+impl Container<Mosquitto> {
     /// Get endpoint URL
     ///
     /// # Errors
@@ -61,12 +68,12 @@ impl Mosquitto {
     /// Could fail if the port is not bind
     pub async fn endpoint(&self) -> Result<String, PortError> {
         let port = self.port.host_port().await?;
-        let url = format!("mqtt://localhost:{port}");
+        let host_ip = self.runner.container_host_ip().await?;
+        let url = format!("mqtt://{host_ip}:{port}");
 
         Ok(url)
     }
 }
-
 impl Default for Mosquitto {
     fn default() -> Self {
         Self {
@@ -87,24 +94,5 @@ impl ToRunnableContainer for Mosquitto {
             })
             .with_port_mappings([self.port.clone()])
             .build()
-    }
-}
-
-#[cfg(test)]
-#[allow(clippy::ignored_unit_patterns)]
-mod tests {
-
-    use super::*;
-    use assert2::{check, let_assert};
-
-    #[tokio::test]
-    async fn should_create_endpoint() {
-        let image = Mosquitto {
-            port: ExposedPort::fixed(PORT, Port::new(9123)),
-            ..Default::default()
-        };
-        let result = image.endpoint().await;
-        let_assert!(Ok(endpoint) = result);
-        check!(endpoint == "mqtt://localhost:9123");
     }
 }

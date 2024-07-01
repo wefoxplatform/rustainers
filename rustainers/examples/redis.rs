@@ -7,6 +7,7 @@ use tracing::{info, Level};
 
 use rustainers::images::Redis;
 use rustainers::runner::{RunOption, Runner};
+use rustainers::Container;
 
 mod common;
 pub use self::common::*;
@@ -30,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn do_something_in_redis(redis: &Redis) -> anyhow::Result<()> {
+async fn do_something_in_redis(redis: &Container<Redis>) -> anyhow::Result<()> {
     let endpoint = redis.endpoint().await?;
     info!("Using Redis at {endpoint}");
     let client = Client::open(endpoint)?;
