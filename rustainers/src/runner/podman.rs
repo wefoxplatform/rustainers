@@ -93,15 +93,15 @@ pub(super) fn create() -> Result<Podman, RunnerError> {
     let mut cmd = Cmd::new("podman");
     cmd.push_args(["version", "--format", "json"]);
     let Ok(Some(version)) = cmd.json_blocking::<Option<PodmanVersion>>() else {
-        return Err(RunnerError::CommandNotAvailable(String::from("docker")));
+        return Err(RunnerError::CommandNotAvailable(String::from("podman")));
     };
 
     // Check client version
     let current = version.client.api_version;
-    debug!("Found docker version: {current}");
+    debug!("Found podman version: {current}");
     if current < MINIMAL_VERSION {
         return Err(RunnerError::UnsupportedVersion {
-            command: String::from("docker"),
+            command: String::from("podman"),
             current,
             minimal: MINIMAL_VERSION,
         });
