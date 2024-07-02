@@ -1,4 +1,5 @@
 use std::fmt::{Debug, Display};
+use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 
 use hex::{decode, encode, FromHex};
@@ -17,8 +18,24 @@ use crate::IdError;
 ///
 /// Note that the [`Display`] view truncate the id,
 /// to have the full [`String`] you need to use the [`Into`] or [`From`] implementation.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy)]
 pub struct Id([u8; 32], usize);
+
+impl PartialEq for Id {
+    #[allow(clippy::indexing_slicing)]
+    fn eq(&self, other: &Self) -> bool {
+        let size = self.1.min(other.1);
+        self.0[..size] == other.0[..size]
+    }
+}
+
+impl Eq for Id {}
+
+impl Hash for Id {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0[..6].hash(state);
+    }
+}
 
 impl From<Id> for String {
     fn from(value: Id) -> Self {
@@ -146,6 +163,21 @@ mod tests {
         let result = str.parse::<Id>();
         let_assert!(Ok(id) = result);
         check!(id.to_string() == short);
+    }
+
+    #[test]
+    fn should_compare_prefix() {
+        let id0 = "c94f6f8d4ef2".parse::<Id>().expect("valid id");
+        let id1 = "c94f6f8d4ef25b80584b9457ca24b964032681895b3a6fd7cd24fd40fad4895e"
+            .parse::<Id>()
+            .expect("valid id");
+        check!(id0 == id1, "same prefix");
+
+        let id0 = "c94f6f8d4ef200".parse::<Id>().expect("valid id");
+        let id1 = "c94f6f8d4ef25b80584b9457ca24b964032681895b3a6fd7cd24fd40fad4895e"
+            .parse::<Id>()
+            .expect("valid id");
+        check!(id0 != id1, "different prefix");
     }
 
     #[rstest]

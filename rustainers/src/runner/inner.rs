@@ -185,20 +185,18 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         self.inspect(id, ".State").await
     }
 
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
     async fn network_ip(
         &self,
         id: ContainerId,
         network: &str,
     ) -> Result<NetworkDetails, ContainerError> {
-        let mut networks = self.inspect_networks(id).await?;
-        networks
-            .remove_entry(network)
-            .map(|(_, network)| network)
-            .ok_or(ContainerError::NoNetwork)
+        let mut networks = self.inspect_container_networks(id).await?;
+        networks.remove(network).ok_or(ContainerError::NoNetwork)
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
-    async fn inspect_networks(
+    async fn inspect_container_networks(
         &self,
         id: ContainerId,
     ) -> Result<HashMap<String, NetworkDetails>, ContainerError> {
@@ -207,12 +205,20 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
-    async fn inspect_host_containers(
+    async fn inspect_network_containers(
         &self,
-        id: ContainerId,
+        network_id: String,
     ) -> Result<HashMap<ContainerId, HostContainer>, ContainerError> {
-        let path = ".Containers".to_string();
-        self.inspect(id, &path).await
+        let mut cmd = self.command();
+        cmd.push_args([
+            "inspect",
+            "--type",
+            "network",
+            "--format={{json .Containers}}",
+            &network_id,
+        ]);
+        let result = cmd.json().await?;
+        Ok(result)
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
@@ -229,8 +235,9 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         &self,
         network_id: ContainerId,
     ) -> Result<Vec<IpamNetworkConfig>, ContainerError> {
-        let path = ".IPAM.Config".to_string();
-        let results: Option<Vec<IpamNetworkConfig>> = self.inspect(network_id, &path).await?;
+        let results = self
+            .inspect::<Option<Vec<IpamNetworkConfig>>>(network_id, ".IPAM.Config")
+            .await?;
         Ok(results.unwrap_or_default())
     }
 
@@ -379,28 +386,23 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     async fn default_gateway_ip(&self) -> Result<Ip, ContainerError> {
         let hostname = env::var("HOSTNAME")?;
         let host_id = hostname.parse::<ContainerId>()?;
-        let networks = self.inspect_networks(host_id).await?;
+        let networks = self.inspect_container_networks(host_id).await?;
         // Filter when values are defined
         let networks = networks
-            .iter()
-            .filter_map(|(_, network)| match (network.id, network.gateway) {
-                (Some(id), Some(gateway)) => Some((id, gateway)),
-                _ => None,
-            })
+            .into_iter()
+            .filter_map(|(_, network)| network.id.zip(network.gateway))
             .collect::<Vec<_>>();
-        let mut gateway: Option<Ip> = None;
         for (network_id, net_gateway) in networks {
-            let containers = self.inspect_host_containers(network_id).await?;
+            let containers = self.inspect_network_containers(network_id).await?;
             // Due to short id vs long id
             if containers
                 .keys()
-                .any(|containe_id| hostname == containe_id.to_string())
+                .any(|container_id| container_id == &host_id)
             {
-                gateway = Some(net_gateway);
-                break;
+                return Ok(net_gateway);
             }
         }
-        gateway.ok_or(ContainerError::NoGateway)
+        Err(ContainerError::NoGateway)
     }
 
     fn is_inside_container(&self) -> bool {

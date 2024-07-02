@@ -58,8 +58,7 @@ impl InnerRunner for Podman {
         &self,
         network_id: ContainerId,
     ) -> Result<Vec<IpamNetworkConfig>, ContainerError> {
-        let path = ".Subnets".to_string();
-        self.inspect(network_id, &path).await
+        self.inspect(network_id, ".Subnets").await
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]

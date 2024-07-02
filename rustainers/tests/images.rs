@@ -123,7 +123,7 @@ async fn test_mongo_endpoint(runner: &Runner) -> anyhow::Result<()> {
 #[rstest]
 #[tokio::test]
 async fn test_run_in_multiple_tasks(runner: &Runner) -> anyhow::Result<()> {
-    if let Runner::Docker(_) = &runner {
+    if let Runner::Podman(_) = &runner {
         // Work with docker, but fail with podman
         // FIXME find a solution
         return Ok(());

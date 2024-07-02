@@ -151,7 +151,7 @@ pub(crate) struct NetworkDetails {
 
     /// Network id
     #[serde(alias = "NetworkID")]
-    pub(crate) id: Option<ContainerId>,
+    pub(crate) id: Option<String>,
 }
 
 /// A Container as described by the runner inspect command on .Containers
@@ -203,9 +203,10 @@ mod tests {
         check!(arg.as_ref() == expected);
     }
 
-    #[test]
-    fn should_deserialize_network_details() {
-        let json = include_str!("../../tests/assets/docker-inspect-network.json");
+    #[rstest]
+    #[case::docker(include_str!("../../tests/assets/docker-inspect-network.json"))]
+    #[case::podman(include_str!("../../tests/assets/podman-inspect-network.json"))]
+    fn should_deserialize_network_details(#[case] json: &str) {
         let result = serde_json::from_str::<NetworkDetails>(json);
         let_assert!(Ok(network_detail) = result);
         let ip = network_detail.ip_address.expect("IP v4").0;
