@@ -387,7 +387,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             // Due to short id vs long id
             if containers
                 .keys()
-                .any(|container_id| container_id == &host_id)
+                .any(|container_id| container_id.same(&host_id))
             {
                 return Ok(net_gateway);
             }
