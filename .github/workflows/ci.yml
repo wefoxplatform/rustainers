@@ -35,14 +35,11 @@ jobs:
         run: cargo test --verbose
 
   tests_with_podman:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
-          - rust: $MSRV
           - rust: stable
-          - rust: beta
-          - rust: nightly
 
     steps:
       - uses: actions/checkout@v4
