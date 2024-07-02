@@ -51,7 +51,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
       - name: Install podman compose
         run: |
-          pip3 install --user podman-compose
+          pipx install podman-compose
       - name: Build
         run: cargo build --verbose --features ensure-podman
       - name: Documentation
