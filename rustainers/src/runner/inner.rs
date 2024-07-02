@@ -348,29 +348,19 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         // network settings, so we can access the resulting container.
         let docker_host = self.host().await?;
         let custom_networks = self.list_custom_networks().await?;
-        let mut networks = vec![];
         for network in custom_networks {
             let network_configs = self.list_network_config(network.id).await?;
-            networks.extend(
-                network_configs
-                    .into_iter()
-                    .filter_map(|x| {
-                        x.subnet.map(|x| {
-                            x.contains(IpAddr::V4(docker_host.0))
-                                .then(|| Network::Custom(network.name.clone()))
-                                .ok_or(0)
-                        })
-                    })
-                    // Chained filtermaps is not ideal
-                    .filter_map(std::result::Result::ok)
-                    .collect::<Vec<Network>>(),
-            );
+            let network = network_configs.iter().find_map(|x| {
+                x.subnet.and_then(|x| {
+                    x.contains(IpAddr::V4(docker_host.0))
+                        .then(|| Network::Custom(network.name.clone()))
+                })
+            });
+            if network.is_some() {
+                return Ok(network);
+            }
         }
-        if let [network] = &networks[..] {
-            Ok(Some(network.clone()))
-        } else {
-            Ok(None)
-        }
+        return Ok(None);
     }
 
     #[tracing::instrument(skip(self),fields(runner = %self))]

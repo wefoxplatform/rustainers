@@ -49,7 +49,7 @@ impl InnerRunner for Podman {
         let mut cmd: Cmd<'_> = self.command();
         cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
         let mut result = cmd.json_stream::<NetworkInfo>().await?;
-        result.retain(|x| ["podman"].contains(&x.name.as_str()));
+        result.retain(|x| "podman" == x.name);
         Ok(result)
     }
 
