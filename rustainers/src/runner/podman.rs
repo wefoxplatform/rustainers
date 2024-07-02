@@ -13,8 +13,7 @@ use crate::IpamNetworkConfig;
 use crate::NetworkInfo;
 
 use super::{ContainerError, InnerRunner, RunnerError};
-
-const MINIMAL_VERSION: Version = Version::new(4, 0);
+const MINIMAL_VERSION: Version = Version::new(3, 4);
 const COMPOSE_MINIMAL_VERSION: Version = Version::new(1, 0);
 
 /// A Podman runner
