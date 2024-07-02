@@ -1,0 +1,9 @@
+{
+  "f7bbcdb277f7cc880b84219c959a5d28169ebb8c41dd32c08a9195a3c79e8d5e": {
+    "Name": "dockerindocker",
+    "EndpointID": "cf1f6dfdbf9c57a5baba9d4fc66fc7965a02a798c95476ad605c1eabfb936c4a",
+    "MacAddress": "02:42:ac:15:00:02",
+    "IPv4Address": "172.21.0.2/16",
+    "IPv6Address": ""
+  }
+}

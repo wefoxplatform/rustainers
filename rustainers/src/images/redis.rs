@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crate::{
-    ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
+    Container, ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
     RunnableContainerBuilder, ToRunnableContainer,
 };
 
@@ -51,21 +51,16 @@ impl Redis {
         image.set_digest(digest);
         Self { image, ..self }
     }
-}
 
-impl Redis {
-    /// Get endpoint URL
-    ///
-    /// # Errors
-    ///
-    /// Could fail if the port is not bind
-    pub async fn endpoint(&self) -> Result<String, PortError> {
-        let port = self.port.host_port().await?;
-        let url = format!("redis://localhost:{port}");
-
-        Ok(url)
+    /// Set the port mapping
+    #[must_use]
+    pub fn with_port(mut self, port: ExposedPort) -> Self {
+        self.port = port;
+        self
     }
 }
+
+impl Redis {}
 
 impl Default for Redis {
     fn default() -> Self {
@@ -76,6 +71,20 @@ impl Default for Redis {
     }
 }
 
+impl Container<Redis> {
+    /// Get endpoint URL
+    ///
+    /// # Errors
+    ///
+    /// Could fail if the port is not bind
+    pub async fn endpoint(&self) -> Result<String, PortError> {
+        let port = self.port.host_port().await?;
+        let host_ip = self.runner.container_host_ip().await?;
+        let url = format!("redis://{host_ip}:{port}");
+
+        Ok(url)
+    }
+}
 impl ToRunnableContainer for Redis {
     fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
         builder
@@ -89,24 +98,5 @@ impl ToRunnableContainer for Redis {
             )
             .with_port_mappings([self.port.clone()])
             .build()
-    }
-}
-
-#[cfg(test)]
-#[allow(clippy::ignored_unit_patterns)]
-mod tests {
-
-    use super::*;
-    use assert2::{check, let_assert};
-
-    #[tokio::test]
-    async fn should_create_endpoint() {
-        let image = Redis {
-            port: ExposedPort::fixed(PORT, Port::new(9123)),
-            ..Default::default()
-        };
-        let result = image.endpoint().await;
-        let_assert!(Ok(endpoint) = result);
-        check!(endpoint == "redis://localhost:9123");
     }
 }

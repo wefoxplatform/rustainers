@@ -1,3 +1,4 @@
+use std::env::VarError;
 use std::path::PathBuf;
 
 use crate::cmd::CommandError;
@@ -76,9 +77,29 @@ pub enum RunnerError {
     },
 
     /// Fail to retrieve container IP in a specific network
-    #[error(
-        "Fail to retrieve container {container} IP for network '{network}' because {source}\nrunner: {runner}"
-    )]
+    #[error("Fail to inspect container {container} networks because {source}\nrunner: {runner}")]
+    InspectNetworkError {
+        /// The runner
+        runner: Runner,
+
+        /// The container,
+        container: Box<ContainerId>,
+        /// The source error
+        source: Box<ContainerError>,
+    },
+
+    /// Fail to retrieve container IP in a specific network
+    #[error("Fail to list network because {source}\nrunner: {runner}")]
+    ListNetworkError {
+        /// The runner
+        runner: Runner,
+
+        /// The source error
+        source: Box<ContainerError>,
+    },
+
+    /// Fail to retrieve network IP
+    #[error("Fail to retrieve network named '{network}' IP for container {container} because {source}\nrunner: {runner}")]
     FindNetworkIpError {
         /// The runner
         runner: Runner,
@@ -119,6 +140,15 @@ pub enum RunnerError {
         runner: Runner,
         /// The container id
         id: ContainerId,
+        /// The source error
+        source: Box<ContainerError>,
+    },
+
+    /// Fail to retrieve host ip address
+    #[error("Can not fetch host because {source}\nrunner: {runner}")]
+    HostIpError {
+        /// The runner
+        runner: Runner,
         /// The source error
         source: Box<ContainerError>,
     },
@@ -196,4 +226,16 @@ pub enum ContainerError {
     /// Volume error
     #[error(transparent)]
     VolumeError(#[from] VolumeError),
+
+    /// Environment variable error
+    #[error(transparent)]
+    EnvVarError(#[from] VarError),
+
+    /// No gateway error
+    #[error("No gateway")]
+    NoGateway,
+
+    /// No network error
+    #[error("No host network")]
+    NoNetwork,
 }

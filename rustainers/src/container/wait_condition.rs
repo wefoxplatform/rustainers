@@ -41,7 +41,7 @@ pub enum WaitStrategy {
 
     /// Wait until log match a pattern
     LogMatch {
-        ///
+        /// the type of io
         io: StdIoKind,
         /// The matcher
         matcher: LogMatcher,

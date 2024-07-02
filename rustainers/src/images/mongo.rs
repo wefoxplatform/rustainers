@@ -1,6 +1,6 @@
 use crate::{
-    ExposedPort, ImageName, Port, PortError, RunnableContainer, RunnableContainerBuilder,
-    ToRunnableContainer, WaitStrategy,
+    Container, ExposedPort, ImageName, Port, PortError, RunnableContainer,
+    RunnableContainerBuilder, ToRunnableContainer, WaitStrategy,
 };
 
 const MONGO_IMAGE: &ImageName = &ImageName::new("mongo");
@@ -49,9 +49,16 @@ impl Mongo {
         image.set_digest(digest);
         Self { image, ..self }
     }
+
+    /// Set the port mapping
+    #[must_use]
+    pub fn with_port(mut self, port: ExposedPort) -> Self {
+        self.port = port;
+        self
+    }
 }
 
-impl Mongo {
+impl Container<Mongo> {
     /// Get endpoint URL
     ///
     /// # Errors
@@ -59,7 +66,8 @@ impl Mongo {
     /// Could fail if the port is not bind
     pub async fn endpoint(&self) -> Result<String, PortError> {
         let port = self.port.host_port().await?;
-        let url = format!("mongodb://localhost:{port}");
+        let host_ip = self.runner.container_host_ip().await?;
+        let url = format!("mongodb://{host_ip}:{port}");
 
         Ok(url)
     }
@@ -81,24 +89,5 @@ impl ToRunnableContainer for Mongo {
             .with_wait_strategy(WaitStrategy::stdout_contains("Waiting for connections"))
             .with_port_mappings([self.port.clone()])
             .build()
-    }
-}
-
-#[cfg(test)]
-#[allow(clippy::ignored_unit_patterns)]
-mod tests {
-
-    use super::*;
-    use assert2::{check, let_assert};
-
-    #[tokio::test]
-    async fn should_create_endpoint() {
-        let image = Mongo {
-            port: ExposedPort::fixed(PORT, Port::new(9123)),
-            ..Default::default()
-        };
-        let result = image.endpoint().await;
-        let_assert!(Ok(endpoint) = result);
-        check!(endpoint == "mongodb://localhost:9123");
     }
 }

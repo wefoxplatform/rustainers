@@ -1,4 +1,5 @@
 use std::fmt::{Debug, Display};
+use std::ops::Deref;
 use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
@@ -17,8 +18,16 @@ use crate::{Id, IdError};
 ///
 /// Note that the [`Display`] view truncate the id,
 /// to have the full [`String`] you need to use the [`Into`] or [`From`] implementation.
-#[derive(Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Hash)]
 pub struct ContainerId(Id);
+
+impl Deref for ContainerId {
+    type Target = Id;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 impl From<ContainerId> for String {
     fn from(value: ContainerId) -> Self {

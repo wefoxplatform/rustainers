@@ -1,4 +1,5 @@
 use std::fmt::{Debug, Display};
+use std::hash::Hash;
 use std::str::FromStr;
 
 use hex::{decode, encode, FromHex};
@@ -13,12 +14,23 @@ use crate::IdError;
 /// Note because some version of Docker CLI return truncated value,
 /// we need to store the size of the id.
 ///
+/// `PartialEq`, `Eq` and `Hash` implementation is based on all fields (size included)
+///
 /// Most usage of this type is done with the string representation.
 ///
 /// Note that the [`Display`] view truncate the id,
 /// to have the full [`String`] you need to use the [`Into`] or [`From`] implementation.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Id([u8; 32], usize);
+
+impl Id {
+    /// Is ids are the same, they could have different size
+    #[allow(clippy::indexing_slicing)]
+    pub fn same(&self, other: &Self) -> bool {
+        let size = self.1.min(other.1);
+        self.0[..size] == other.0[..size]
+    }
+}
 
 impl From<Id> for String {
     fn from(value: Id) -> Self {
@@ -146,6 +158,21 @@ mod tests {
         let result = str.parse::<Id>();
         let_assert!(Ok(id) = result);
         check!(id.to_string() == short);
+    }
+
+    #[test]
+    fn should_compare_prefix() {
+        let id0 = "c94f6f8d4ef2".parse::<Id>().expect("valid id");
+        let id1 = "c94f6f8d4ef25b80584b9457ca24b964032681895b3a6fd7cd24fd40fad4895e"
+            .parse::<Id>()
+            .expect("valid id");
+        check!(id0.same(&id1) == true, "same prefix");
+
+        let id0 = "c94f6f8d4ef200".parse::<Id>().expect("valid id");
+        let id1 = "c94f6f8d4ef25b80584b9457ca24b964032681895b3a6fd7cd24fd40fad4895e"
+            .parse::<Id>()
+            .expect("valid id");
+        check!(id0.same(&id1) == false, "different prefix");
     }
 
     #[rstest]

@@ -8,6 +8,7 @@ use tracing::{info, warn, Level};
 
 use rustainers::images::Postgres;
 use rustainers::runner::{RunOption, Runner};
+use rustainers::Container;
 
 mod common;
 pub use self::common::*;
@@ -30,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn do_something_in_postgres(pg: &Postgres) -> anyhow::Result<()> {
+async fn do_something_in_postgres(pg: &Container<Postgres>) -> anyhow::Result<()> {
     let config = pg.config().await?;
 
     // Connect to the database.

@@ -1,9 +1,8 @@
-
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 name: Continuous integration
 
@@ -35,6 +34,28 @@ jobs:
       - name: Tests
         run: cargo test --verbose
 
+  tests_with_podman:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - rust: stable
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - name: Install podman compose
+        run: |
+          pipx install podman-compose
+      - name: Build
+        run: cargo build --verbose --features ensure-podman
+      - name: Documentation
+        run: cargo doc --verbose --features ensure-podman
+      - name: Tests
+        run: cargo test --verbose --features ensure-podman
+
   clippy:
     runs-on: ubuntu-latest
     steps:
@@ -62,3 +83,18 @@ jobs:
       - run: cargo +nightly hack generate-lockfile --remove-dev-deps -Z direct-minimal-versions
       - name: Build
         run: cargo build --verbose --all-features
+
+  docker_in_docker:
+    runs-on: ubuntu-latest
+    container:
+      image: public.ecr.aws/docker/library/rust:1.76
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup container
+        run: |
+          .devcontainer/dev-container-setup.sh
+      - name: Build
+        run: cargo build --verbose
+      - name: Tests
+        run: cargo test -- --test should_work_dind --nocapture

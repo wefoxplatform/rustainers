@@ -2,14 +2,17 @@ use std::fmt::Display;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use tracing::{debug, info};
 
 use crate::cmd::Cmd;
 use crate::version::Version;
+use crate::ContainerId;
 use crate::ContainerProcess;
+use crate::IpamNetworkConfig;
+use crate::NetworkInfo;
 
 use super::{ContainerError, InnerRunner, RunnerError};
-
 const MINIMAL_VERSION: Version = Version::new(4, 0);
 const COMPOSE_MINIMAL_VERSION: Version = Version::new(1, 0);
 
@@ -33,6 +36,28 @@ pub struct Podman {
 impl InnerRunner for Podman {
     fn command(&self) -> Cmd<'static> {
         Cmd::new("podman")
+    }
+
+    #[tracing::instrument(level = "info", skip(self), fields(runner = %self))]
+    fn is_inside_container(&self) -> bool {
+        Path::new("/run/.containerenv").exists()
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_custom_networks(&self) -> Result<Vec<NetworkInfo>, ContainerError> {
+        let mut cmd: Cmd<'_> = self.command();
+        cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
+        let mut result = cmd.json_stream::<NetworkInfo>().await?;
+        result.retain(|x| "podman" == x.name);
+        Ok(result)
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_network_config(
+        &self,
+        network_id: ContainerId,
+    ) -> Result<Vec<IpamNetworkConfig>, ContainerError> {
+        self.inspect(network_id, ".Subnets").await
     }
 
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
@@ -67,15 +92,15 @@ pub(super) fn create() -> Result<Podman, RunnerError> {
     let mut cmd = Cmd::new("podman");
     cmd.push_args(["version", "--format", "json"]);
     let Ok(Some(version)) = cmd.json_blocking::<Option<PodmanVersion>>() else {
-        return Err(RunnerError::CommandNotAvailable(String::from("docker")));
+        return Err(RunnerError::CommandNotAvailable(String::from("podman")));
     };
 
     // Check client version
     let current = version.client.api_version;
-    debug!("Found docker version: {current}");
+    debug!("Found podman version: {current}");
     if current < MINIMAL_VERSION {
         return Err(RunnerError::UnsupportedVersion {
-            command: String::from("docker"),
+            command: String::from("podman"),
             current,
             minimal: MINIMAL_VERSION,
         });

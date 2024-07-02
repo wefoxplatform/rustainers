@@ -1,0 +1,17 @@
+{
+  "EndpointID": "",
+  "Gateway": "172.29.0.1",
+  "IPAddress": "172.29.0.2",
+  "IPPrefixLen": 24,
+  "IPv6Gateway": "",
+  "GlobalIPv6Address": "",
+  "GlobalIPv6PrefixLen": 0,
+  "MacAddress": "4e:de:c4:26:11:dc",
+  "NetworkID": "my_network_01J1Q681647VBM5DG1C9AAKDFG",
+  "DriverOpts": null,
+  "IPAMConfig": null,
+  "Links": null,
+  "Aliases": [
+    "0192bdda76b9"
+  ]
+}

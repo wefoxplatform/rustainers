@@ -1,3 +1,4 @@
+use ipnetwork::IpNetwork;
 use std::borrow::Cow;
 use std::fmt::Display;
 use std::net::Ipv4Addr;
@@ -137,17 +138,57 @@ mod serde_ip {
     }
 }
 
+/// A Network as described by the runner inspect command on .NetworkSettings.Networks
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
-pub(crate) struct ContainerNetwork {
+pub(crate) struct NetworkDetails {
     #[serde(alias = "IPAddress")]
+    /// Network Ip address
     pub(crate) ip_address: Option<Ip>,
+
+    /// Network gateway
+    #[serde(alias = "Gateway")]
+    pub(crate) gateway: Option<Ip>,
+
+    /// Network id
+    #[serde(alias = "NetworkID")]
+    pub(crate) id: Option<String>,
+}
+
+/// A Container as described by the runner inspect command on .Containers
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub(crate) struct HostContainer {
+    #[serde(alias = "Name")]
+    /// Container name
+    pub(crate) name: Option<String>,
+}
+
+/// A Network as described by the runner network command
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub(crate) struct NetworkInfo {
+    /// Name of the network
+    #[serde(alias = "Name")]
+    pub(crate) name: String,
+
+    /// Id of the network
+    #[serde(alias = "ID")]
+    pub(crate) id: ContainerId,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub(crate) struct IpamNetworkConfig {
+    #[serde(alias = "Subnet")]
+    pub(crate) subnet: Option<IpNetwork>,
+
+    #[serde(alias = "Gateway")]
+    pub(crate) gateway: Option<Ipv4Addr>,
 }
 
 #[cfg(test)]
 #[allow(clippy::ignored_unit_patterns)]
 mod tests {
-    use assert2::check;
+    use assert2::{check, let_assert};
     use rstest::rstest;
+    use std::collections::HashMap;
 
     use super::*;
 
@@ -162,11 +203,36 @@ mod tests {
         check!(arg.as_ref() == expected);
     }
 
-    #[test]
-    fn should_deserialize_container_network() {
-        let json = include_str!("../../tests/assets/docker-inspect-network.json");
-        let result = serde_json::from_str::<ContainerNetwork>(json).expect("json");
-        let ip = result.ip_address.expect("IP v4").0;
+    #[rstest]
+    #[case::docker(include_str!("../../tests/assets/docker-inspect-network.json"))]
+    #[case::podman(include_str!("../../tests/assets/podman-inspect-network.json"))]
+    fn should_deserialize_network_details(#[case] json: &str) {
+        let result = serde_json::from_str::<NetworkDetails>(json);
+        let_assert!(Ok(network_detail) = result);
+        let ip = network_detail.ip_address.expect("IP v4").0;
         check!(ip == Ipv4Addr::from([172_u8, 29, 0, 2]));
+    }
+
+    #[test]
+    fn should_deserialize_network_info() {
+        let json = include_str!("../../tests/assets/docker-network.json");
+        let result = serde_json::from_str::<NetworkInfo>(json);
+        let_assert!(Ok(network_info) = result);
+        let expected = "b79a7ee6fe69".parse::<ContainerId>();
+        let_assert!(Ok(expected_id) = expected);
+        check!(network_info.id == expected_id);
+    }
+
+    #[test]
+    fn should_deserialize_host_containers() {
+        let json = include_str!("../../tests/assets/docker-inspect-containers.json");
+        let result = serde_json::from_str::<HashMap<ContainerId, HostContainer>>(json);
+        let_assert!(Ok(containers) = result);
+        let id = "f7bbcdb277f7cc880b84219c959a5d28169ebb8c41dd32c08a9195a3c79e8d5e"
+            .parse::<ContainerId>();
+        let_assert!(Ok(container_id) = id);
+        let_assert!(Some(host) = containers.get(&container_id));
+        let_assert!(Some(container_name) = &host.name);
+        check!(container_name == &"dockerindocker".to_string());
     }
 }
