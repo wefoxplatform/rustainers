@@ -24,8 +24,14 @@ pub fn init_test_tracing(level: Level) {
 pub fn runner() -> Runner {
     init_test_tracing(Level::INFO);
 
-    #[allow(clippy::expect_used)]
-    let runner = Runner::auto().expect("Should find a valid runner");
+    let runner = if cfg!(feature = "ensure-podman") {
+        #[allow(clippy::expect_used)]
+        Runner::podman().expect("Should find a valid runner")
+    } else {
+        #[allow(clippy::expect_used)]
+        Runner::auto().expect("Should find a valid runner")
+    };
+
     debug!("Using runner {runner:?}");
     runner
 }

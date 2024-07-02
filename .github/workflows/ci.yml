@@ -34,6 +34,28 @@ jobs:
       - name: Tests
         run: cargo test --verbose
 
+  tests_with_podman:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - rust: $MSRV
+          - rust: stable
+          - rust: beta
+          - rust: nightly
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - name: Build
+        run: cargo build --verbose --features ensure-podman
+      - name: Documentation
+        run: cargo doc --verbose --features ensure-podman
+      - name: Tests
+        run: cargo test --verbose --features ensure-podman
+
   clippy:
     runs-on: ubuntu-latest
     steps:
