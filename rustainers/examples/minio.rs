@@ -11,6 +11,7 @@ use tracing::{info, Level};
 
 use rustainers::images::Minio;
 use rustainers::runner::{RunOption, Runner};
+use rustainers::Container;
 
 mod common;
 pub use self::common::*;
@@ -38,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn do_something_in_minio(minio: &Minio, bucket_name: &str) -> anyhow::Result<()> {
+async fn do_something_in_minio(minio: &Container<Minio>, bucket_name: &str) -> anyhow::Result<()> {
     let endpoint = minio.endpoint().await?;
     info!("Using MinIO at {endpoint}");
     let s3 = AmazonS3Builder::from_env()

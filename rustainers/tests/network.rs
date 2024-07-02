@@ -6,6 +6,7 @@ use ulid::Ulid;
 mod common;
 pub use self::common::*;
 use self::images::InternalWebServer;
+use crate::images::Curl;
 
 #[rstest]
 #[tokio::test]
@@ -72,6 +73,32 @@ async fn should_work_with_network_ip(runner: &Runner) -> anyhow::Result<()> {
     .await;
 
     let_assert!(Ok(()) = result);
+
+    Ok(())
+}
+
+#[rstest]
+#[tokio::test]
+async fn should_work_dind(runner: &Runner) -> anyhow::Result<()> {
+    let id = Ulid::new();
+
+    // Container A inside network
+    let server_options = RunOption::builder()
+        .with_name(format!("web-server_{id}"))
+        .with_remove(true)
+        .build();
+
+    let _ = runner
+        .start_with_options(InternalWebServer, server_options)
+        .await?;
+
+    let_assert!(Ok(host) = runner.container_host_ip().await);
+    let client_options = RunOption::builder()
+        .with_name(format!("client_{id}"))
+        .build();
+    let url = format!("http://{host}:80");
+    let image = Curl { url };
+    let _ = runner.start_with_options(image, client_options).await?;
 
     Ok(())
 }

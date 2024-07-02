@@ -9,6 +9,7 @@ use mongodb::bson::{doc, Document};
 use mongodb::{options::ClientOptions, Client};
 use rustainers::images::Mongo;
 use rustainers::runner::{RunOption, Runner};
+use rustainers::Container;
 mod common;
 pub use self::common::*;
 
@@ -30,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn do_something_in_mongo(mongo: &Mongo) -> anyhow::Result<()> {
+async fn do_something_in_mongo(mongo: &Container<Mongo>) -> anyhow::Result<()> {
     let endpoint = mongo.endpoint().await?;
     info!("Using Mongo at {endpoint}");
 

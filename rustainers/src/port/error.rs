@@ -1,3 +1,4 @@
+use crate::runner::RunnerError;
 use crate::Port;
 
 /// Port error
@@ -11,4 +12,8 @@ pub enum PortError {
     /// The port is not yet bind
     #[error("Container port {0} not bind")]
     PortNotBindYet(Port),
+
+    /// The container is failing
+    #[error(transparent)]
+    RunnerError(#[from] RunnerError),
 }

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crate::{
-    ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
+    Container, ExposedPort, HealthCheck, ImageName, Port, PortError, RunnableContainer,
     RunnableContainerBuilder, ToRunnableContainer,
 };
 
@@ -86,36 +86,12 @@ impl Postgres {
         let db = db.into();
         Self { db, ..self }
     }
-}
 
-impl Postgres {
-    /// Get connection URL
-    ///
-    /// # Errors
-    ///
-    /// Could fail if the port is not bind
-    pub async fn url(&self) -> Result<String, PortError> {
-        let user = &self.user;
-        let password = &self.password;
-        let port = self.port.host_port().await?;
-        let database = &self.db;
-        let url = format!("postgresql://{user}:{password}@localhost:{port}/{database}");
-        Ok(url)
-    }
-
-    /// Get connection string
-    ///
-    /// # Errors
-    ///
-    /// Could fail if the port is not bind
-    pub async fn config(&self) -> Result<String, PortError> {
-        let user = &self.user;
-        let password = &self.password;
-        let port = self.port.host_port().await?;
-        let database = &self.db;
-        let config =
-            format!("host=localhost user={user} password={password} port={port} dbname={database}");
-        Ok(config)
+    /// Set the port mapping
+    #[must_use]
+    pub fn with_port(mut self, port: ExposedPort) -> Self {
+        self.port = port;
+        self
     }
 }
 
@@ -131,6 +107,36 @@ impl Default for Postgres {
     }
 }
 
+impl Container<Postgres> {
+    /// # Errors
+    ///
+    /// Could fail if the port is not bind
+    pub async fn config(&self) -> Result<String, PortError> {
+        let user = &self.user;
+        let password = &self.password;
+        let host_ip = self.runner.container_host_ip().await?;
+        let port = self.port.host_port().await?;
+        let database = &self.db;
+        let config =
+            format!("host={host_ip} user={user} password={password} port={port} dbname={database}");
+        Ok(config)
+    }
+
+    /// Get connection URL
+    ///
+    /// # Errors
+    ///
+    /// Could fail if the port is not bind
+    pub async fn url(&self) -> Result<String, PortError> {
+        let user = &self.user;
+        let password = &self.password;
+        let port = self.port.host_port().await?;
+        let host_ip = self.runner.container_host_ip().await?;
+        let database = &self.db;
+        let url = format!("postgresql://{user}:{password}@{host_ip}:{port}/{database}");
+        Ok(url)
+    }
+}
 impl ToRunnableContainer for Postgres {
     fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
         builder
@@ -150,34 +156,5 @@ impl ToRunnableContainer for Postgres {
             ])
             .with_port_mappings([self.port.clone()])
             .build()
-    }
-}
-
-#[cfg(test)]
-#[allow(clippy::ignored_unit_patterns)]
-mod tests {
-
-    use assert2::check;
-
-    use super::*;
-
-    #[tokio::test]
-    async fn should_build_config() {
-        let image = Postgres {
-            port: ExposedPort::fixed(PORT, Port::new(5432)),
-            ..Default::default()
-        };
-        let result = image.config().await.expect("config");
-        check!(result == "host=localhost user=postgres password=passwd port=5432 dbname=postgres");
-    }
-
-    #[tokio::test]
-    async fn should_build_url() {
-        let image = Postgres {
-            port: ExposedPort::fixed(PORT, Port::new(5432)),
-            ..Default::default()
-        };
-        let result = image.url().await.expect("url");
-        check!(result == "postgresql://postgres:passwd@localhost:5432/postgres");
     }
 }

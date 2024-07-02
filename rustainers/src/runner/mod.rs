@@ -272,6 +272,24 @@ impl Runner {
         Ok(ip.0)
     }
 
+    /// Get the container host ip
+    ///
+    /// # Errors
+    ///
+    /// Could fail if we cannot execute the inspect command
+    pub async fn container_host_ip(&self) -> Result<Ipv4Addr, RunnerError> {
+        let host_ip = match self {
+            Self::Docker(runner) => runner.host().await,
+            Self::Podman(runner) => runner.host().await,
+            Self::Nerdctl(runner) => runner.host().await,
+        }
+        .map_err(|source| RunnerError::HostIpError {
+            runner: self.clone(),
+            source: Box::new(source),
+        })?;
+        Ok(host_ip.0)
+    }
+
     /// Execute a command into the container
     ///
     /// # Errors
