@@ -13,7 +13,7 @@ use crate::{ExposedPort, ImageReference, WaitStrategy};
 /// # use std::time::Duration;
 /// # use rustainers::{RunnableContainer, HealthCheck, ExposedPort, ImageName};
 /// let runnable = RunnableContainer::builder()
-///     .with_image(ImageName::new("redis"))
+///     .with_image(ImageName::new("docker.io/redis"))
 ///     .with_wait_strategy(
 ///         HealthCheck::builder()
 ///             .with_command("redis-cli --raw incr ping")

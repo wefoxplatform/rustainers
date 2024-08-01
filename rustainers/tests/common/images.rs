@@ -14,7 +14,7 @@ pub struct InternalWebServer;
 impl ToRunnableContainer for InternalWebServer {
     fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
         builder
-            .with_image(ImageName::new("nginx"))
+            .with_image(ImageName::new("docker.io/nginx"))
             .with_wait_strategy(
                 HealthCheck::builder()
                     .with_command("curl -sf http://localhost") //DevSkim: ignore DS137138
@@ -50,7 +50,7 @@ pub async fn curl(
 impl ToRunnableContainer for Curl {
     fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
         builder
-            .with_image(ImageName::new("curlimages/curl"))
+            .with_image(ImageName::new("docker.io/curlimages/curl"))
             .with_wait_strategy(WaitStrategy::State(ContainerStatus::Exited))
             .with_command(["-fsv", "--connect-timeout", "1", &self.url])
             .build()
@@ -70,7 +70,7 @@ impl Default for WebServer {
 impl ToRunnableContainer for WebServer {
     fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
         builder
-            .with_image(ImageName::new("nginx"))
+            .with_image(ImageName::new("docker.io/nginx"))
             .with_port_mappings([self.0.clone()])
             .with_wait_strategy(WaitStrategy::http("/"))
             .build()
@@ -123,7 +123,7 @@ impl Default for Netcat {
 impl ToRunnableContainer for Netcat {
     fn to_runnable(&self, builder: RunnableContainerBuilder) -> RunnableContainer {
         builder
-            .with_image(ImageName::new("alpine"))
+            .with_image(ImageName::new("docker.io/alpine"))
             .with_port_mappings([self.0.clone()])
             .with_wait_strategy(WaitStrategy::scan_port(Self::PORT))
             .with_command(["nc", "-vl", "8888"])

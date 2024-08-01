@@ -5,7 +5,7 @@ use crate::{
     RunnableContainerBuilder, ToRunnableContainer, WaitStrategy,
 };
 
-const MOSQUITTO_IMAGE: &ImageName = &ImageName::new("eclipse-mosquitto");
+const MOSQUITTO_IMAGE: &ImageName = &ImageName::new("docker.io/eclipse-mosquitto");
 
 const PORT: Port = Port(6379);
 

@@ -5,7 +5,7 @@ use crate::{
     RunnableContainerBuilder, ToRunnableContainer,
 };
 
-const REDIS_IMAGE: &ImageName = &ImageName::new("redis");
+const REDIS_IMAGE: &ImageName = &ImageName::new("docker.io/redis");
 
 const PORT: Port = Port(6379);
 

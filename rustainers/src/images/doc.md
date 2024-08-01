@@ -19,7 +19,7 @@ use rustainers::{
 
 // Declare the image as a constant.
 // You can provide a tag or a digest if you want.
-const NGINX_IMAGE: &ImageName = &ImageName::new("nginx");
+const NGINX_IMAGE: &ImageName = &ImageName::new("docker.io/nginx");
 
 const PORT: u16 = 80;
 

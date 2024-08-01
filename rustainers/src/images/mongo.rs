@@ -3,7 +3,7 @@ use crate::{
     RunnableContainerBuilder, ToRunnableContainer, WaitStrategy,
 };
 
-const MONGO_IMAGE: &ImageName = &ImageName::new("mongo");
+const MONGO_IMAGE: &ImageName = &ImageName::new("docker.io/mongo");
 
 const PORT: Port = Port(27017);
 

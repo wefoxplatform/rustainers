@@ -8,7 +8,7 @@ use crate::{
 
 const DATA: &str = "/data";
 
-const MINIO_IMAGE: &ImageName = &ImageName::new("minio/minio");
+const MINIO_IMAGE: &ImageName = &ImageName::new("docker.io/minio/minio");
 
 const PORT: Port = Port(9000);
 

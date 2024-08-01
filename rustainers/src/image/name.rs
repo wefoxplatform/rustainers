@@ -14,7 +14,7 @@ use super::ImageNameError;
 ///
 /// ```rust
 /// # use rustainers::ImageName;
-/// const POSTGRES_IMAGE: &ImageName = &ImageName::new("postgres");
+/// const POSTGRES_IMAGE: &ImageName = &ImageName::new("docker.io/postgres");
 ///```
 ///
 /// Parse an image name:
