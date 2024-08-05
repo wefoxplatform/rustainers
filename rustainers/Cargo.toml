@@ -13,7 +13,7 @@ description = "A simple, opinionated way to run containers for tests."
 readme = "README.md"
 repository = "https://github.com/wefoxplatform/rustainers"
 
-rust-version = "1.67.0" # toml_datetime
+rust-version = "1.70.0" # toml_datetime
 
 [features]
 default = []
