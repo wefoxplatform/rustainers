@@ -2,7 +2,6 @@
 
 use std::time::Duration;
 
-use bytes::Bytes;
 use futures_util::StreamExt;
 use object_store::aws::AmazonS3Builder;
 use object_store::path::Path;
@@ -52,7 +51,7 @@ async fn do_something_in_minio(minio: &Container<Minio>, bucket_name: &str) -> a
         .build()?;
 
     // Store an object
-    s3.put(&Path::from("plop.txt"), Bytes::from_static(b"plop"))
+    s3.put(&Path::from("plop.txt"), b"plop"[..].into())
         .await?;
 
     // list objects

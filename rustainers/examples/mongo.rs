@@ -47,9 +47,9 @@ async fn do_something_in_mongo(mongo: &Container<Mongo>) -> anyhow::Result<()> {
         doc! { "title": "The Great Gatsby", "author": "F. Scott Fitzgerald" },
     ];
 
-    collection.insert_many(docs, None).await?;
+    collection.insert_many(docs).await?;
 
-    let count = collection.count_documents(None, None).await?;
+    let count = collection.count_documents(Document::new()).await?;
 
     info!("Number of documents in the collection: {count}");
 
