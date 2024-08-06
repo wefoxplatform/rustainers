@@ -35,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-const NGINX_IMAGE: &ImageName = &ImageName::new("nginx");
+const NGINX_IMAGE: &ImageName = &ImageName::new("docker.io/nginx");
 
 const PORT: u16 = 80;
 

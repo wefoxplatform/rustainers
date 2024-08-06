@@ -5,7 +5,7 @@ use crate::{
     RunnableContainerBuilder, ToRunnableContainer,
 };
 
-const POSTGRES_IMAGE: &ImageName = &ImageName::new("postgres");
+const POSTGRES_IMAGE: &ImageName = &ImageName::new("docker.io/postgres");
 
 const PORT: Port = Port(5432);
 
