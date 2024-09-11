@@ -51,8 +51,7 @@ async fn do_something_in_minio(minio: &Container<Minio>, bucket_name: &str) -> a
         .build()?;
 
     // Store an object
-    s3.put(&Path::from("plop.txt"), b"plop"[..].into())
-        .await?;
+    s3.put(&Path::from("plop.txt"), b"plop"[..].into()).await?;
 
     // list objects
     let mut stream = s3.list(None);
