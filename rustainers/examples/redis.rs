@@ -38,7 +38,7 @@ async fn do_something_in_redis(redis: &Container<Redis>) -> anyhow::Result<()> {
     let mut con = client.get_connection()?;
     let key = "plop";
     // throw away the result, just make sure it does not fail
-    con.set(key, "plop-123")?;
+    let _: () = con.set(key, "plop-123")?;
     // read back the key and return it.  Because the return value
     // from the function is a result for integer this will automatically
     // convert into one.
