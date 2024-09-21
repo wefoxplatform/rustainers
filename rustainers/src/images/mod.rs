@@ -3,9 +3,12 @@
 mod postgres;
 use indexmap::IndexMap;
 
+use crate::Container;
 use crate::ContainerStatus;
 use crate::ExposedPort;
 use crate::ImageReference;
+use crate::Port;
+use crate::PortError;
 use crate::RunnableContainer;
 use crate::RunnableContainerBuilder;
 use crate::ToRunnableContainer;
@@ -32,6 +35,27 @@ mod nats;
 pub use self::nats::*;
 
 /// A Generic Image
+///
+/// ```rust, no_run
+/// # async fn run() -> anyhow::Result<()> {
+/// use rustainers::{ImageName, WaitStrategy};
+/// use rustainers::images::GenericImage;
+///
+/// let name = ImageName::new("docker.io/nginx");
+/// let container_port = 80;
+///
+/// let mut nginx = GenericImage::new(name);
+/// nginx.add_port_mapping(container_port);
+/// nginx.set_wait_strategy(WaitStrategy::http("/"));
+///
+/// # let runner = rustainers::runner::Runner::auto()?;
+/// let container = runner.start(nginx).await?;
+///
+/// let port = container.host_port(container_port).await?;
+/// // ...
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Debug)]
 pub struct GenericImage(RunnableContainer);
 
@@ -90,5 +114,25 @@ impl ToRunnableContainer for GenericImage {
             wait_strategy: self.0.wait_strategy.clone(),
             port_mappings: self.0.port_mappings.clone(),
         }
+    }
+}
+
+impl Container<GenericImage> {
+    /// Find the host port for a container port
+    ///
+    /// # Errors
+    ///
+    /// Fail if there is no mapping with the container port
+    /// Could fail if the port is not bind
+    pub async fn host_port(&self, container_port: impl Into<Port>) -> Result<Port, PortError> {
+        let container_port = container_port.into();
+
+        for mapping in &self.0.port_mappings {
+            if mapping.container_port == container_port {
+                return mapping.host_port().await;
+            }
+        }
+
+        Err(PortError::ContainerPortNotFound(container_port))
     }
 }

@@ -13,6 +13,10 @@ pub enum PortError {
     #[error("Container port {0} not bind")]
     PortNotBindYet(Port),
 
+    /// The container port not found
+    #[error("Container port {0} not found")]
+    ContainerPortNotFound(Port),
+
     /// The container is failing
     #[error(transparent)]
     RunnerError(#[from] RunnerError),

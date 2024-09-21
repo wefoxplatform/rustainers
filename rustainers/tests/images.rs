@@ -7,9 +7,9 @@ use rstest::rstest;
 use tokio::task::JoinSet;
 use tracing::{debug, info};
 
-use rustainers::images::{Minio, Mongo, Mosquitto, Nats, Postgres, Redis};
+use rustainers::images::{GenericImage, Minio, Mongo, Mosquitto, Nats, Postgres, Redis};
 use rustainers::runner::{RunOption, Runner};
-use rustainers::{ExposedPort, Port};
+use rustainers::{ExposedPort, ImageName, Port, WaitStrategy};
 
 mod common;
 pub use self::common::*;
@@ -226,5 +226,24 @@ async fn test_mosquitto_endpoint(runner: &Runner) -> anyhow::Result<()> {
     let result = container.endpoint().await;
     let_assert!(Ok(endpoint) = result);
     check!(endpoint == "mqtt://127.0.0.1:9127");
+    Ok(())
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_generic_image(runner: &Runner) -> anyhow::Result<()> {
+    let options = RunOption::builder().with_remove(true).build();
+    let name = ImageName::new("docker.io/nginx");
+    let mut nginx = GenericImage::new(name);
+    let container_port = 80;
+    nginx.add_port_mapping(container_port);
+    nginx.set_wait_strategy(WaitStrategy::http("/"));
+
+    let container = runner.start_with_options(nginx, options).await?;
+    debug!("Started {container}");
+
+    let host_port = container.host_port(container_port).await;
+    let_assert!(Ok(_) = host_port);
+
     Ok(())
 }

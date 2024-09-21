@@ -65,6 +65,11 @@ impl Services {
     pub fn contains_all(&self, services: &[ComposeService]) -> bool {
         services.iter().all(|svc| self.contains(svc))
     }
+
+    /// Get the container id of a service
+    pub fn get(&self, service: &ComposeService) -> Option<ContainerId> {
+        self.0.get(service).copied()
+    }
 }
 
 impl Index<&ComposeService> for Services {
