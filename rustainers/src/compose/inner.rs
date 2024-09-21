@@ -3,7 +3,7 @@ use std::path::Path;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::cmd::Cmd;
 use crate::runner::InnerRunner;
@@ -45,17 +45,29 @@ pub(crate) trait InnerComposeRunner: InnerRunner {
         // Wait
         let interval = options.wait_interval;
         for (service, wait) in wait_strategies {
-            debug_assert!(services.contains(service));
-            #[allow(clippy::indexing_slicing)]
-            let id = services[service];
+            let Some(id) = services.get(service) else {
+                warn!(
+                    ?service,
+                    ?wait,
+                    ?services,
+                    "Compose service {service} not found, skip wait strategy"
+                );
+                continue;
+            };
             self.wait_service_ready(service, id, wait, interval).await?;
         }
 
         // Port mapping
         for (service, mapping) in port_mappings {
-            debug_assert!(services.contains(service));
-            #[allow(clippy::indexing_slicing)]
-            let id = services[service];
+            let Some(id) = services.get(service) else {
+                warn!(
+                    ?service,
+                    ?mapping,
+                    ?services,
+                    "Compose service {service} not found, skip port mapping"
+                );
+                continue;
+            };
             let port = self.port(id, mapping.container_port).await?;
             mapping.bind_port(port).await;
         }
