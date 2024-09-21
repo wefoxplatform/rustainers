@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.1](https://github.com/wefoxplatform/rustainers/compare/v0.13.0...v0.13.1) - 2024-09-21
+
+### Added
+
+- Adds NATS image ([#31](https://github.com/wefoxplatform/rustainers/pull/31))
+
 ## [0.13.0](https://github-ilaborie/wefoxplatform/rustainers/compare/v0.12.0...v0.13.0) - 2024-09-11
 
 ### Added
