@@ -7,7 +7,7 @@ use rstest::rstest;
 use tokio::task::JoinSet;
 use tracing::{debug, info};
 
-use rustainers::images::{Minio, Mongo, Mosquitto, Postgres, Redis};
+use rustainers::images::{Minio, Mongo, Mosquitto, Nats, Postgres, Redis};
 use rustainers::runner::{RunOption, Runner};
 use rustainers::{ExposedPort, Port};
 
@@ -92,6 +92,63 @@ async fn test_redis_endpoint(runner: &Runner) -> anyhow::Result<()> {
     let result = container.endpoint().await;
     let_assert!(Ok(endpoint) = result);
     check!(endpoint == "redis://127.0.0.1:9125");
+    Ok(())
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_image_nats(runner: &Runner) -> anyhow::Result<()> {
+    let options = RunOption::builder().with_remove(true).build();
+    let image = Nats::default();
+    let container = runner.start_with_options(image, options).await?;
+    debug!("Started {container}");
+
+    container.client_endpoint().await?;
+    Ok(())
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_nats_client_endpoint(runner: &Runner) -> anyhow::Result<()> {
+    let options = RunOption::builder().with_remove(true).build();
+    let image =
+        Nats::default().with_client_port(ExposedPort::fixed(Port::new(8333), Port::new(8333)));
+    let container = runner.start_with_options(image, options).await?;
+    debug!("Started {container}");
+
+    let result = container.client_endpoint().await;
+    let_assert!(Ok(endpoint) = result);
+    check!(endpoint == "nats://127.0.0.1:8333");
+    Ok(())
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_nats_monitoring_endpoint(runner: &Runner) -> anyhow::Result<()> {
+    let options = RunOption::builder().with_remove(true).build();
+    let image =
+        Nats::default().with_monitoring_port(ExposedPort::fixed(Port::new(8666), Port::new(8666)));
+    let container = runner.start_with_options(image, options).await?;
+    debug!("Started {container}");
+
+    let result = container.monitoring_endpoint().await;
+    let_assert!(Ok(endpoint) = result);
+    check!(endpoint == "http://127.0.0.1:8666");
+    Ok(())
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_nats_cluster_endpoint(runner: &Runner) -> anyhow::Result<()> {
+    let options = RunOption::builder().with_remove(true).build();
+    let image =
+        Nats::default().with_cluster_port(ExposedPort::fixed(Port::new(8777), Port::new(8777)));
+    let container = runner.start_with_options(image, options).await?;
+    debug!("Started {container}");
+
+    let result = container.cluster_endpoint().await;
+    let_assert!(Ok(endpoint) = result);
+    check!(endpoint == "nats-route://127.0.0.1:8777");
     Ok(())
 }
 

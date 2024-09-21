@@ -28,6 +28,9 @@ pub use self::alpine::*;
 mod mosquitto;
 pub use self::mosquitto::*;
 
+mod nats;
+pub use self::nats::*;
+
 /// A Generic Image
 #[derive(Debug)]
 pub struct GenericImage(RunnableContainer);
