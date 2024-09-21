@@ -60,7 +60,7 @@ insta = { version = "1.39", features = ["json"] }
 mongodb = "3.0.1"
 object_store = { version = "0.11.0", features = ["aws"] }
 rdkafka = { version = "0.36" }
-redis = "0.26"
+redis = "0.27"
 rstest = "0.22"
 tokio = { version = "1.39", features = ["macros", "rt-multi-thread"] }
 tokio-postgres = "0.7"
