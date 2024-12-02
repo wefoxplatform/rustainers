@@ -59,7 +59,7 @@ futures-util = "0.3.30"
 insta = { version = "1.39", features = ["json"] }
 mongodb = "3.0.1"
 object_store = { version = "0.11.0", features = ["aws"] }
-rdkafka = { version = "0.36" }
+rdkafka = { version = "0.37" }
 redis = "0.26"
 rstest = "0.22"
 tokio = { version = "1.39", features = ["macros", "rt-multi-thread"] }
