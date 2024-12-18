@@ -1,3 +1,5 @@
+//! Custom container tests.
+
 use assert2::let_assert;
 use rstest::rstest;
 

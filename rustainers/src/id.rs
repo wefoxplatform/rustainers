@@ -110,7 +110,7 @@ mod image_id_serde {
 
     struct IdVisitor;
 
-    impl<'de> Visitor<'de> for IdVisitor {
+    impl Visitor<'_> for IdVisitor {
         type Value = Id;
 
         fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {

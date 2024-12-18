@@ -1,3 +1,5 @@
+//! Tests for log waits.
+
 use std::time::{Duration, Instant};
 
 use assert2::check;

@@ -108,7 +108,7 @@ impl<'a> Cmd<'a> {
 }
 
 // Blocking API
-impl<'a> Cmd<'a> {
+impl Cmd<'_> {
     fn output_blocking(&self) -> Result<Output, CommandError> {
         debug!("Running blocking command\n{self}");
         let mut cmd: std::process::Command = std::process::Command::new(self.command);
@@ -141,7 +141,7 @@ impl<'a> Cmd<'a> {
 }
 
 // Async API
-impl<'a> Cmd<'a> {
+impl Cmd<'_> {
     async fn output(&self) -> Result<Output, CommandError> {
         debug!("Running command\n{self}");
         let mut cmd = tokio::process::Command::new(self.command);
@@ -226,7 +226,7 @@ pub(crate) fn escape_arg(arg: &str) -> Cow<'_, str> {
     }
 }
 
-impl<'a> Display for Cmd<'a> {
+impl Display for Cmd<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.command)?;
         for arg in &self.args {

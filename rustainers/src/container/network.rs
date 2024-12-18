@@ -113,7 +113,7 @@ mod serde_ip {
     }
 
     struct IpVisitor;
-    impl<'de> Visitor<'de> for IpVisitor {
+    impl Visitor<'_> for IpVisitor {
         type Value = Ip;
 
         fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {

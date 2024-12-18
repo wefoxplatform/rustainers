@@ -1,3 +1,5 @@
+//! Contains test images.
+
 #![allow(clippy::expect_used)]
 
 use std::time::SystemTime;
