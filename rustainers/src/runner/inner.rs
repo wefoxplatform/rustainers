@@ -279,6 +279,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
                 }
                 WaitStrategy::HttpSuccess {
                     https,
+                    require_valid_certs,
                     path,
                     container_port,
                 } => {
@@ -291,7 +292,14 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
                         "{scheme}://127.0.0.1:{host_port}/{}",
                         path.trim_start_matches('/')
                     );
-                    let Ok(response) = reqwest::get(&url).await else {
+                    let Ok(client) = reqwest::ClientBuilder::new()
+                        .danger_accept_invalid_certs(!require_valid_certs)
+                        .build()
+                    else {
+                        warn!(%url,"Could not create new client, will retry later");
+                        continue;
+                    };
+                    let Ok(response) = client.get(&url).send().await else {
                         warn!(%url,"Fail to get the URL, will retry later");
                         continue;
                     };

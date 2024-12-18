@@ -25,6 +25,11 @@ pub enum WaitStrategy {
     HttpSuccess {
         /// If we use HTTPS instead of HTTP
         https: bool,
+        /// If TLS certificates are validated.
+        ///
+        /// Setting this field to `false` will allow self-signed certificates to be used.
+        /// This setting is used only when `https` is set to `true`.
+        require_valid_certs: bool,
         /// The path to check
         path: String,
         /// The container port
@@ -82,6 +87,7 @@ impl WaitStrategy {
         let container_port = Port(80);
         Self::HttpSuccess {
             https: false,
+            require_valid_certs: true,
             path,
             container_port,
         }
@@ -93,6 +99,7 @@ impl WaitStrategy {
         let container_port = Port(443);
         Self::HttpSuccess {
             https: true,
+            require_valid_certs: true,
             path,
             container_port,
         }
@@ -168,12 +175,21 @@ impl Display for WaitStrategy {
             Self::State(state) => write!(f, "State {state}"),
             Self::HttpSuccess {
                 https,
+                require_valid_certs,
                 path,
                 container_port,
             } => write!(
                 f,
                 "HTTP success {}on path path {path} with container port {container_port}",
-                if *https { "(HTTPS)" } else { "" }
+                if *https {
+                    if *require_valid_certs {
+                        "(HTTPS with valid certs)"
+                    } else {
+                        "(HTTPS with self-signed certs)"
+                    }
+                } else {
+                    ""
+                }
             ),
             Self::ScanPort {
                 container_port,
