@@ -1,3 +1,5 @@
+//! Common functions.
+
 use rstest::fixture;
 use tracing::{debug, Level};
 use tracing_subscriber::fmt::format::FmtSpan;
@@ -7,6 +9,7 @@ use rustainers::runner::Runner;
 
 pub mod images;
 
+/// Initializes tracing in tests.
 pub fn init_test_tracing(level: Level) {
     tracing_subscriber::fmt()
         .pretty()
@@ -21,7 +24,7 @@ pub fn init_test_tracing(level: Level) {
 
 #[fixture]
 #[once]
-pub fn runner() -> Runner {
+pub(crate) fn runner() -> Runner {
     init_test_tracing(Level::INFO);
 
     let runner = if cfg!(feature = "ensure-podman") {

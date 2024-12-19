@@ -1,3 +1,5 @@
+//! Tools for tests.
+
 use assert2::let_assert;
 use rstest::rstest;
 use ulid::Ulid;

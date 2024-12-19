@@ -106,7 +106,7 @@ mod serde_version {
 
     struct VersionVisitor;
 
-    impl<'de> Visitor<'de> for VersionVisitor {
+    impl Visitor<'_> for VersionVisitor {
         type Value = Version;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

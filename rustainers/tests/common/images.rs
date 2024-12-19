@@ -1,3 +1,5 @@
+//! Common test images.
+
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::process::Command;
 
@@ -7,7 +9,7 @@ use rustainers::{
     RunnableContainerBuilder, ToRunnableContainer, WaitStrategy,
 };
 
-// A web server only accessible when sharing the same network
+/// A web server only accessible when sharing the same network
 #[derive(Debug)]
 pub struct InternalWebServer;
 
@@ -24,9 +26,10 @@ impl ToRunnableContainer for InternalWebServer {
     }
 }
 
-// Curl
+/// Curl image.
 #[derive(Debug)]
 pub struct Curl {
+    /// URL to be checked.
     pub url: String,
 }
 
@@ -57,7 +60,7 @@ impl ToRunnableContainer for Curl {
     }
 }
 
-// A web server accessible from host
+/// A web server accessible from host
 #[derive(Debug)]
 pub struct WebServer(ExposedPort);
 
@@ -78,7 +81,7 @@ impl ToRunnableContainer for WebServer {
 }
 
 impl WebServer {
-    // Container path that contains the static HTML pages
+    /// Container path that contains the static HTML pages
     pub const STATIC_HTML: &'static str = "/usr/share/nginx/html";
 
     /// Get the text content
@@ -95,7 +98,7 @@ impl WebServer {
     }
 }
 
-// Netcat
+/// Netcat
 #[derive(Debug)]
 pub struct Netcat(ExposedPort);
 

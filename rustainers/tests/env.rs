@@ -1,3 +1,5 @@
+//! Envorinment variable tests.
+
 use std::collections::HashMap;
 
 use assert2::check;

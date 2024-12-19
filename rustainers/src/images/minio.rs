@@ -70,19 +70,19 @@ impl Minio {
 impl Minio {
     /// The region
     #[must_use]
-    pub fn region(&self) -> &str {
+    pub fn region(&self) -> &'static str {
         "us-east-1"
     }
 
     /// The access key id
     #[must_use]
-    pub fn access_key_id(&self) -> &str {
+    pub fn access_key_id(&self) -> &'static str {
         "minioadmin"
     }
 
     /// The secret access key
     #[must_use]
-    pub fn secret_access_key(&self) -> &str {
+    pub fn secret_access_key(&self) -> &'static str {
         "minioadmin"
     }
 }

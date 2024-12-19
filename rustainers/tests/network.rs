@@ -1,3 +1,5 @@
+//! Network-related tests.
+
 use assert2::let_assert;
 use rstest::rstest;
 use rustainers::runner::{RunOption, Runner};

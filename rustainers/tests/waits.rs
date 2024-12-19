@@ -1,3 +1,5 @@
+//! Tests for waits.
+
 mod common;
 use assert2::let_assert;
 use rstest::rstest;
