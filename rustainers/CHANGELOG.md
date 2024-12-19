@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2](https://github.com/wefoxplatform/rustainers/compare/v0.13.1...v0.13.2) - 2024-12-19
+
+### Fixed
+
+- Add documentation and fix clippy lints (#41)
+
 ## [0.13.1](https://github.com/wefoxplatform/rustainers/compare/v0.13.0...v0.13.1) - 2024-09-21
 
 ### Added
