@@ -69,7 +69,7 @@ impl KafkaSchemaRegistry {
     /// Fail if we cannot retrieve the Kafka host port
     pub async fn broker_address(&self) -> Result<String, PortError> {
         let port = self.kafka_port.host_port().await?;
-        let addr = format!("localhost:{port}");
+        let addr = format!("127.0.0.1:{port}");
 
         Ok(addr)
     }
@@ -81,7 +81,7 @@ impl KafkaSchemaRegistry {
     /// Fail if we cannot retrieve the schema registry host port
     pub async fn schema_registry_endpoint(&self) -> Result<String, PortError> {
         let port = self.schema_registry_port.host_port().await?;
-        let addr = format!("http://localhost:{port}");
+        let addr = format!("http://127.0.0.1:{port}");
 
         Ok(addr)
     }

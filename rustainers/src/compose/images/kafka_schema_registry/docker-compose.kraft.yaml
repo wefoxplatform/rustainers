@@ -15,7 +15,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_JMX_HOSTNAME: 127.0.0.1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_NODE_ID: 1
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
@@ -27,7 +27,7 @@ services:
       - ./kafka_update_run.sh:/tmp/update_run.sh
     command: 'bash -c ''if [ ! -f /tmp/update_run.sh ]; then echo "ERROR: Did you forget the update_run.sh file that came with this docker-compose.yml file?" && exit 1 ; else /tmp/update_run.sh && /etc/confluent/docker/run ; fi'''
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      test: ["CMD", "nc", "-z", "127.0.0.1", "9092"]
       interval: 5s
       retries: 20
       start_period: 8s
@@ -44,7 +44,7 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9093
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081 #Devskim: ignore DS137138
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8081/subjects"] #Devskim: ignore DS137138
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8081/subjects"] #Devskim: ignore DS137138
       interval: 1s
       retries: 20
       start_period: 8s

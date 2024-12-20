@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Making a dummy HTTP request
     let port = container.port.host_port().await?;
-    let url = format!("http://localhost:{port}"); //DevSkim: ignore DS137138
+    let url = format!("http://127.0.0.1:{port}"); //DevSkim: ignore DS137138
     Command::new("curl").args(["-v", &url]).status()?;
 
     Ok(())
