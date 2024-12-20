@@ -55,7 +55,7 @@ impl ToRunnableContainer for Nginx {
                 // Note that this command is executed in the container
                 // therefore you need to have the `curl` command available in the container
                 HealthCheck::builder()
-                    .with_command("curl -sf http://localhost") //DevSkim: ignore DS137138
+                    .with_command("curl -sf http://127.0.0.1") //DevSkim: ignore DS137138
                     .build(),
             )
             // ports mapping

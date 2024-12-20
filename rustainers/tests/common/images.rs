@@ -19,7 +19,7 @@ impl ToRunnableContainer for InternalWebServer {
             .with_image(ImageName::new("docker.io/nginx"))
             .with_wait_strategy(
                 HealthCheck::builder()
-                    .with_command("curl -sf http://localhost") //DevSkim: ignore DS137138
+                    .with_command("curl -sf http://127.0.0.1") //DevSkim: ignore DS137138
                     .build(),
             )
             .build()
@@ -91,7 +91,7 @@ impl WebServer {
     /// Fail if we cannot retrieve the result
     pub async fn get(&self, path: &str) -> anyhow::Result<String> {
         let port = self.0.host_port().await?;
-        let url = format!("http://localhost:{port}/{}", path.trim_start_matches('/')); //DevSkim: ignore DS137138
+        let url = format!("http://127.0.0.1:{port}/{}", path.trim_start_matches('/')); //DevSkim: ignore DS137138
         let out = Command::new("curl").arg(&url).output()?;
         let result = String::from_utf8_lossy(&out.stdout);
         Ok(result.to_string())

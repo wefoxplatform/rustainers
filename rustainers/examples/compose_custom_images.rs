@@ -53,7 +53,7 @@ services:
         ports:
             - 80
         healthcheck:
-            test: ["CMD", "curl", "-sf", "http://localhost"]
+            test: ["CMD", "curl", "-sf", "http://127.0.0.1"]
             interval: 1s
             retries: 5
             start_period: 1s
@@ -73,7 +73,7 @@ services:
 
     async fn url(&self) -> Result<String, PortError> {
         let port = self.nginx_port.host_port().await?;
-        let url = format!("http://localhost:{port}");
+        let url = format!("http://127.0.0.1:{port}");
 
         Ok(url)
     }
