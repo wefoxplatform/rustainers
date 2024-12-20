@@ -12,7 +12,6 @@ expert, we can use your help.
 This guide will help you get started. **Do not let this guide intimidate you**.
 It should be considered a map to help you navigate the process.
 
-
 ## Asking for General Help
 
 If you have reviewed existing documentation and still have questions or are
@@ -41,7 +40,5 @@ Note that multiple commits often get squashed when they are landed.
 
 Commit messages should follow [Conventional commits].
 
-
 [just]: https://just.systems/
 [Conventional commits]: https://www.conventionalcommits.org/
-[crate.io]: https://crates.io/

@@ -1,8 +1,8 @@
+# rustainers
+
 [![Build status](https://github.com/wefoxplatform/rustainers/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wefoxplatform/rustainers/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/rustainers)](https://crates.io/crates/rustainers)
 [![Documentation](https://docs.rs/rustainers/badge.svg)](https://docs.rs/rustainers)
-
-# rustainers
 
 `rustainers` is a simple, opinionated way to run containers for tests.
 
@@ -22,7 +22,7 @@ The key differences are
 - this crate supports [docker compose], [podman-compose] or [nerdctl compose]
 - the start command is `async`, and the crate is using [tokio]
 
-For now, the implementation is based on the CLI command. 
+For now, the implementation is based on the CLI command.
 We may add more runner based on Rust api later.
 
 ## Run a simple container
@@ -114,7 +114,6 @@ async fn do_something_with_kafka(image: &KafkaSchemaRegistry) -> anyhow::Result<
 ## Create a custom image
 
 See [`images`](crate::images) module documentation.
-
 
 ## Create a custom compose images
 
