@@ -1,5 +1,5 @@
 use std::fmt::{self, Debug, Display};
-use std::net::Ipv4Addr;
+use std::net::IpAddr;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
@@ -235,7 +235,7 @@ impl Runner {
         &self,
         container: &Container<I>,
         network: &Network,
-    ) -> Result<Ipv4Addr, RunnerError>
+    ) -> Result<IpAddr, RunnerError>
     where
         I: ToRunnableContainer,
     {
@@ -277,7 +277,7 @@ impl Runner {
     /// # Errors
     ///
     /// Could fail if we cannot execute the inspect command
-    pub async fn container_host_ip(&self) -> Result<Ipv4Addr, RunnerError> {
+    pub async fn container_host_ip(&self) -> Result<IpAddr, RunnerError> {
         let host_ip = match self {
             Self::Docker(runner) => runner.host().await,
             Self::Podman(runner) => runner.host().await,

@@ -360,7 +360,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
             let network_configs = self.list_network_config(network.id).await?;
             let network = network_configs.iter().find_map(|x| {
                 x.subnet.and_then(|x| {
-                    x.contains(IpAddr::V4(docker_host.0))
+                    x.contains(docker_host.0)
                         .then(|| Network::Custom(network.name.clone()))
                 })
             });
@@ -376,7 +376,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         if self.is_inside_container() {
             self.default_gateway_ip().await
         } else {
-            Ok(Ip(Ipv4Addr::LOCALHOST))
+            Ok(Ip(IpAddr::from(Ipv4Addr::LOCALHOST)))
         }
     }
 
@@ -519,7 +519,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
                 self.create_and_start(CreateAndStartOption::new(image, &options))
                     .await?
             }
-            None => {
+            Option::None => {
                 let mut options = Cow::Borrowed(&options);
                 // If the user has specified a network, we'll assume the user knows best
                 if options.network.is_none() & self.get_docker_host().is_none() {

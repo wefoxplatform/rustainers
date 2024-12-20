@@ -1,7 +1,7 @@
 use ipnetwork::IpNetwork;
 use std::borrow::Cow;
 use std::fmt::Display;
-use std::net::Ipv4Addr;
+use std::net::IpAddr;
 
 use serde::{Deserialize, Serialize};
 
@@ -93,10 +93,10 @@ impl From<ContainerId> for Network {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct Ip(pub(crate) Ipv4Addr);
+pub(crate) struct Ip(pub(crate) IpAddr);
 
 mod serde_ip {
-    use std::net::Ipv4Addr;
+    use std::net::IpAddr;
 
     use serde::de::Visitor;
     use serde::{Deserialize, Serialize};
@@ -124,7 +124,7 @@ mod serde_ip {
         where
             E: serde::de::Error,
         {
-            value.parse::<Ipv4Addr>().map(Ip).map_err(E::custom)
+            value.parse::<IpAddr>().map(Ip).map_err(E::custom)
         }
     }
 
@@ -180,7 +180,7 @@ pub(crate) struct IpamNetworkConfig {
     pub(crate) subnet: Option<IpNetwork>,
 
     #[serde(alias = "Gateway")]
-    pub(crate) gateway: Option<Ipv4Addr>,
+    pub(crate) gateway: Option<IpAddr>,
 }
 
 #[cfg(test)]
@@ -210,7 +210,7 @@ mod tests {
         let result = serde_json::from_str::<NetworkDetails>(json);
         let_assert!(Ok(network_detail) = result);
         let ip = network_detail.ip_address.expect("IP v4").0;
-        check!(ip == Ipv4Addr::from([172_u8, 29, 0, 2]));
+        check!(ip == IpAddr::from([172_u8, 29, 0, 2]));
     }
 
     #[test]
@@ -234,5 +234,15 @@ mod tests {
         let_assert!(Some(host) = containers.get(&container_id));
         let_assert!(Some(container_name) = &host.name);
         check!(container_name == &"dockerindocker".to_string());
+    }
+
+    #[rstest]
+    #[case::empty("[]")]
+    #[case::one_ipv4(r#"[{"Subnet":"172.17.0.0/16","Gateway":"172.17.0.1"}]"#)]
+    #[case::one_ipv6(r#"[{"Subnet":"172.17.0.0/16","Gateway":"172.17.0.1"}]"#)]
+    #[case::mixed(r#"[{"Subnet":"172.17.0.0/16","Gateway":"172.17.0.1"},{"Subnet":"2a01:e0a:1bd:d810::/64","Gateway":"2a01:e0a:1bd:d810::1"}]"#)]
+    fn should_deserialize_ipam_network_config(#[case] json: &str) {
+        let result = serde_json::from_str::<Vec<IpamNetworkConfig>>(json);
+        let_assert!(Ok(_) = result);
     }
 }

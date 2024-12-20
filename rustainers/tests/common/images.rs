@@ -112,7 +112,7 @@ impl Netcat {
     /// Fail if the container is not started (port not bound)
     pub async fn addr(&self) -> Result<SocketAddr, PortError> {
         let port = self.0.host_port().await?;
-        let result = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port.into());
+        let result = SocketAddr::new(IpAddr::from(Ipv4Addr::LOCALHOST), port.into());
         Ok(result)
     }
 }
