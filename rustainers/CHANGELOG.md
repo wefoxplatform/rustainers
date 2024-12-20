@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.1](https://github.com/wefoxplatform/rustainers/compare/v0.14.0...v0.14.1) - 2024-12-20
+
+### Fixed
+
+- build, test & run on machine with ipv4 & ipv6 enabled (#42)
+
+### Other
+
+- fix mardown syntax (#43)
+
 ## [0.14.0](https://github.com/wefoxplatform/rustainers/compare/v0.13.1...v0.14.0) - 2024-12-20
 
 ### Added
