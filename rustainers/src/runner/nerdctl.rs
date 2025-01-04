@@ -1,6 +1,5 @@
 use std::fmt::Display;
 
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
@@ -21,7 +20,6 @@ pub struct Nerdctl {
     pub version: Version,
 }
 
-#[async_trait]
 impl InnerRunner for Nerdctl {
     fn command(&self) -> Cmd<'static> {
         Cmd::new("nerdctl")

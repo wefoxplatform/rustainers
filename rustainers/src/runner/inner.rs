@@ -6,7 +6,6 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::Path;
 use std::time::Duration;
 
-use async_trait::async_trait;
 use indexmap::IndexMap;
 use serde::de::DeserializeOwned;
 use tokio::net::TcpStream;
@@ -23,7 +22,6 @@ use crate::{
 
 use super::{ContainerError, RunOption};
 
-#[async_trait]
 pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     fn command(&self) -> Cmd<'static>;
 
@@ -249,7 +247,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         interval: Duration, // TODO could have a more flexible type
     ) -> Result<(), ContainerError> {
         if let WaitStrategy::LogMatch { io, matcher } = wait_condition {
-            let mut rx = self.watch_logs(id, *io).await?;
+            let mut rx = self.watch_logs(id, *io)?;
             while let Some(line) = rx.recv().await {
                 trace!("Log: {line}");
                 if matcher.matches(&line) {
@@ -407,7 +405,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         Path::new("/.dockerenv").exists()
     }
 
-    async fn watch_logs(
+    fn watch_logs(
         &self,
         id: ContainerId,
         io: StdIoKind,

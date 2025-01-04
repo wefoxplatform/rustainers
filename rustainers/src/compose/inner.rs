@@ -2,7 +2,6 @@ use std::ffi::OsStr;
 use std::path::Path;
 use std::time::Duration;
 
-use async_trait::async_trait;
 use tracing::{info, warn};
 
 use crate::cmd::Cmd;
@@ -11,7 +10,6 @@ use crate::{ContainerId, ExposedPort, WaitStrategy};
 
 use super::{ComposeError, ComposeRunOption, ComposeService, ComposeServiceState, Services};
 
-#[async_trait]
 pub(crate) trait InnerComposeRunner: InnerRunner {
     fn compose_command(&self) -> Result<Cmd<'static>, ComposeError>;
 

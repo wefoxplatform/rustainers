@@ -1,6 +1,5 @@
 use std::fmt::Display;
 
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
 
@@ -28,7 +27,6 @@ pub struct Docker {
     pub compose_version: Option<Version>,
 }
 
-#[async_trait]
 impl InnerRunner for Docker {
     fn command(&self) -> Cmd<'static> {
         Cmd::new("docker")
