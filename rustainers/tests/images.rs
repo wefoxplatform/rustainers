@@ -112,7 +112,10 @@ async fn test_image_nats(runner: &Runner) -> anyhow::Result<()> {
 #[rstest]
 #[tokio::test]
 async fn test_nats_client_endpoint(runner: &Runner) -> anyhow::Result<()> {
-    let options = RunOption::builder().with_remove(true).build();
+    let options = RunOption::builder()
+        .with_remove(true)
+        .with_name("test_nats_client_endpoint")
+        .build();
     let image =
         Nats::default().with_client_port(ExposedPort::fixed(Port::new(8333), Port::new(8333)));
     let container = runner.start_with_options(image, options).await?;
@@ -127,7 +130,10 @@ async fn test_nats_client_endpoint(runner: &Runner) -> anyhow::Result<()> {
 #[rstest]
 #[tokio::test]
 async fn test_nats_monitoring_endpoint(runner: &Runner) -> anyhow::Result<()> {
-    let options = RunOption::builder().with_remove(true).build();
+    let options = RunOption::builder()
+        .with_remove(true)
+        .with_name("test_nats_monitoring_endpoint")
+        .build();
     let image =
         Nats::default().with_monitoring_port(ExposedPort::fixed(Port::new(8666), Port::new(8666)));
     let container = runner.start_with_options(image, options).await?;
@@ -142,7 +148,10 @@ async fn test_nats_monitoring_endpoint(runner: &Runner) -> anyhow::Result<()> {
 #[rstest]
 #[tokio::test]
 async fn test_nats_cluster_endpoint(runner: &Runner) -> anyhow::Result<()> {
-    let options = RunOption::builder().with_remove(true).build();
+    let options = RunOption::builder()
+        .with_name("test_nats_cluster_endpoint")
+        .with_remove(true)
+        .build();
     let image =
         Nats::default().with_cluster_port(ExposedPort::fixed(Port::new(8777), Port::new(8777)));
     let container = runner.start_with_options(image, options).await?;

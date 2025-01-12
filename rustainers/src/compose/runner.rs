@@ -85,8 +85,6 @@ impl Runner {
 mod docker {
     use std::path::Path;
 
-    use async_trait::async_trait;
-
     use crate::cmd::Cmd;
     use crate::compose::{ComposeError, ComposeServiceState, InnerComposeRunner, Services};
     use crate::runner::{Docker, InnerRunner};
@@ -98,7 +96,6 @@ mod docker {
     // See <https://docs.docker.com/compose/release-notes/#2230>
     const NO_TRUNC_MINIMAL_VERSION: Version = Version::new(2, 23);
 
-    #[async_trait]
     impl InnerComposeRunner for Docker {
         fn compose_command(&self) -> Result<Cmd<'static>, ComposeError> {
             if self.compose_version.is_none() {
@@ -139,13 +136,11 @@ mod docker {
 }
 
 mod nerdctl {
-    use async_trait::async_trait;
 
     use crate::cmd::Cmd;
     use crate::compose::{ComposeError, InnerComposeRunner};
     use crate::runner::{InnerRunner, Nerdctl};
 
-    #[async_trait]
     impl InnerComposeRunner for Nerdctl {
         fn compose_command(&self) -> Result<Cmd<'static>, ComposeError> {
             let mut cmd = self.command();
@@ -158,7 +153,6 @@ mod nerdctl {
 mod podman {
     use std::path::Path;
 
-    use async_trait::async_trait;
     use serde::{Deserialize, Serialize};
 
     use crate::cmd::Cmd;
@@ -166,7 +160,6 @@ mod podman {
     use crate::runner::{InnerRunner, Podman};
     use crate::{ContainerHealth, ContainerId, ContainerStatus};
 
-    #[async_trait]
     impl InnerComposeRunner for Podman {
         fn compose_command(&self) -> Result<Cmd<'static>, ComposeError> {
             if self.compose_version.is_none() {
