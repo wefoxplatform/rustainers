@@ -29,7 +29,7 @@ very-long-tests = []
 [dependencies]
 hex = { version = "0.4.3", features = ["serde"] }
 indexmap = "2.3.0"
-ipnetwork = "0.20.0"
+ipnetwork = { version = "0.21.1", features = ["serde"] }
 path-absolutize = "3.1.1"
 regex = { version = "1.10.6", optional = true }
 reqwest = { version = "0.12.5" }
@@ -37,7 +37,7 @@ serde = { version = "1.0.204", features = ["derive", "rc"] }
 serde_json = "1.0.122"
 strum = "0.26.3"
 strum_macros = "0.26.4"
-thiserror = "1.0.63"
+thiserror = "2.0.11"
 tokio = { version = "1.39", features = [
   "time",
   "process",
@@ -58,9 +58,9 @@ futures-util = "0.3.30"
 insta = { version = "1.39", features = ["json"] }
 mongodb = "3.0.1"
 object_store = { version = "0.11.0", features = ["aws"] }
-rdkafka = { version = "0.36" }
-redis = "0.26"
-rstest = "0.22"
+rdkafka = { version = "0.37.0" }
+redis = "0.28.2"
+rstest = "0.24.0"
 tokio = { version = "1.39", features = ["macros", "rt-multi-thread"] }
 tokio-postgres = "0.7"
 tracing-subscriber = { version = "0.3", features = ["fmt"] }
