@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0](https://github.com/wefoxplatform/rustainers/compare/v0.14.0...v0.15.0) - 2025-01-26
+
+### Added
+
+- bump dependencies (#45)
+
+### Fixed
+
+- build, test & run on machine with ipv4 & ipv6 enabled (#42)
+
+### Other
+
+- remove async-trait dependency (#44)
+- fix mardown syntax (#43)
+
 ## [0.14.0](https://github.com/wefoxplatform/rustainers/compare/v0.13.1...v0.14.0) - 2024-12-20
 
 ### Added
