@@ -17,6 +17,9 @@ rust-version = "1.75.0"
 
 [features]
 default = []
+native-tls = ["reqwest/native-tls"]
+rustls-tls-webpki-roots = ["reqwest/rustls-tls-webpki-roots"]
+rustls-tls-native-roots = ["reqwest/rustls-tls-native-roots"]
 
 regex = ["dep:regex"]
 
