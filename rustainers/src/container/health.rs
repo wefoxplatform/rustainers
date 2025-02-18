@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tracing::warn;
 
 /// The container health
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, strum_macros::Display)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, derive_more::Display)]
 #[serde(rename_all = "lowercase")]
 pub(crate) enum ContainerHealth {
     /// Unknown

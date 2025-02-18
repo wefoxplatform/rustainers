@@ -6,7 +6,7 @@ use super::ContainerHealth;
 
 /// The container State
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, strum_macros::Display,
+    Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, derive_more::Display,
 )]
 #[serde(rename_all = "lowercase")]
 pub enum ContainerStatus {
