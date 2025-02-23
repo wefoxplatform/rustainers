@@ -11,6 +11,7 @@ use crate::{Network, Volume};
 ///
 /// * `wait_interval`: wait until re-check a container state (default 500ms)
 /// * `remove`: if we remove the container after the stop (`--rm` flag, default false)
+/// * `stop_timeout`: wait after the stop before killing the container
 /// * `name`: provide the container name (default unnamed, use the runner name)
 /// * `network`: define the network
 /// * `volumes`: set some volumes
@@ -24,6 +25,9 @@ pub struct RunOption {
 
     /// Automatically remove the container when it exits
     pub(super) remove: bool,
+
+    /// The duration to wait after sending the first signal to stop before killing the container
+    pub(super) stop_timeout: Option<Duration>,
 
     /// Assign a name to the container
     #[builder(setter(into, strip_option))]
@@ -68,4 +72,16 @@ impl Default for RunOption {
     fn default() -> Self {
         RunOption::builder().build()
     }
+}
+
+/// Stop options
+///
+/// Available options:
+///
+/// * `timeout`: wait after the stop before killing the container
+#[derive(Debug, Clone, Default, TypedBuilder)]
+#[builder(field_defaults(default, setter(prefix = "with_")))]
+pub struct StopOption {
+    /// The duration to wait after sending the first signal to stop before killing the container
+    pub(super) timeout: Option<Duration>,
 }

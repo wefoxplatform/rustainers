@@ -20,7 +20,7 @@ use crate::{
     RunnableContainer, Volume, WaitStrategy,
 };
 
-use super::{ContainerError, RunOption};
+use super::{ContainerError, RunOption, StopOption};
 
 pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     fn command(&self) -> Cmd<'static>;
@@ -69,6 +69,12 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
         // Remove
         if option.remove {
             cmd.push_arg("--rm");
+        }
+
+        // Stop timeout
+        if let Some(stop_timeout) = option.stop_timeout {
+            let secs = stop_timeout.as_secs();
+            cmd.push_args(["--stop-timeout", &secs.to_string()]);
         }
 
         // Name
@@ -562,10 +568,16 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     }
 
     #[tracing::instrument(skip(self, id), fields(runner = %self, id = %id))]
-    fn stop(&self, id: ContainerId) -> Result<(), ContainerError> {
+    fn stop(&self, id: ContainerId, options: StopOption) -> Result<(), ContainerError> {
         let mut cmd = self.command();
         cmd.push_arg("stop");
         cmd.push_arg(id);
+
+        if let Some(timeout) = options.timeout {
+            let secs = timeout.as_secs();
+            cmd.push_args(["--timeout", &secs.to_string()]);
+        }
+
         let status = cmd.status_blocking()?;
         if status.success() {
             info!(%id, "🛑 Container stopped");
@@ -588,6 +600,7 @@ pub(crate) struct CreateAndStartOption<'a> {
     health_check: Option<&'a HealthCheck>,
     ports: &'a [ExposedPort],
     remove: bool,
+    stop_timeout: Option<Duration>,
     name: Option<&'a str>,
     network: Cow<'a, Network>,
     volumes: &'a [Volume],
@@ -604,6 +617,7 @@ impl<'a> CreateAndStartOption<'a> {
         } else {
             None
         };
+        let stop_timeout = option.stop_timeout;
         let ports = &image.port_mappings;
         let remove = option.remove;
         let name = option.name();
@@ -635,6 +649,7 @@ impl<'a> CreateAndStartOption<'a> {
             health_check,
             ports,
             remove,
+            stop_timeout,
             name,
             network,
             volumes,
