@@ -13,7 +13,7 @@ description = "A simple, opinionated way to run containers for tests."
 readme = "README.md"
 repository = "https://github.com/wefoxplatform/rustainers"
 
-rust-version = "1.75.0"
+rust-version = "1.80.0"
 
 [features]
 default = ["native-tls"]

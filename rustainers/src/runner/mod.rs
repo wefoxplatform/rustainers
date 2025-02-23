@@ -331,13 +331,32 @@ impl Runner {
     where
         I: ToRunnableContainer,
     {
+        let options = StopOption::default();
+        self.stop_with_options(container, options)
+    }
+
+    /// Stop the container
+    ///
+    /// This method is call during the [`crate::Container`] drop if it's not detached
+    ///
+    /// # Errors
+    ///
+    /// Fail if we cannot launch the container
+    pub fn stop_with_options<I>(
+        &self,
+        container: &Container<I>,
+        options: StopOption,
+    ) -> Result<(), RunnerError>
+    where
+        I: ToRunnableContainer,
+    {
         self.guard_runner(container)?;
 
         let id = container.id;
         match self {
-            Self::Docker(runner) => runner.stop(id),
-            Self::Podman(runner) => runner.stop(id),
-            Self::Nerdctl(runner) => runner.stop(id),
+            Self::Docker(runner) => runner.stop(id, options),
+            Self::Podman(runner) => runner.stop(id, options),
+            Self::Nerdctl(runner) => runner.stop(id, options),
         }
         .map_err(|source| RunnerError::StopError {
             runner: self.clone(),
