@@ -9,7 +9,7 @@ name: Continuous integration
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
-  MSRV: 1.75.0
+  MSRV: 1.80.0
 
 jobs:
   tests:
@@ -87,7 +87,7 @@ jobs:
   docker_in_docker:
     runs-on: ubuntu-latest
     container:
-      image: public.ecr.aws/docker/library/rust:1.76
+      image: public.ecr.aws/docker/library/rust:1.80
 
     steps:
       - uses: actions/checkout@v4
