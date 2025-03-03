@@ -66,7 +66,7 @@ mongodb = "3.0.1"
 object_store = { version = "0.11.0", features = ["aws"] }
 rdkafka = { version = "0.37.0" }
 redis = "0.28.2"
-rstest = "0.24.0"
+rstest = "0.25.0"
 tokio = { version = "1.39", features = ["macros", "rt-multi-thread"] }
 tokio-postgres = "0.7"
 tracing-subscriber = { version = "0.3", features = ["fmt"] }
