@@ -63,7 +63,7 @@ bytes = "1.7"
 futures-util = "0.3.30"
 insta = { version = "1.39", features = ["json"] }
 mongodb = "3.0.1"
-object_store = { version = "0.11.0", features = ["aws"] }
+object_store = { version = "0.12.0", features = ["aws"] }
 rdkafka = { version = "0.37.0" }
 redis = "0.28.2"
 rstest = "0.24.0"
