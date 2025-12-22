@@ -14,7 +14,7 @@ pub use self::error::*;
 
 #[derive(Debug, Clone)]
 pub(crate) struct Cmd<'a> {
-    command: &'a str,
+    pub(crate) command: &'a str,
     args: Vec<String>,
     dir: Option<&'a Path>,
     env: IndexMap<String, String>,

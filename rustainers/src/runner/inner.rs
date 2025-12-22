@@ -228,7 +228,12 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
     async fn list_custom_networks(&self) -> Result<Vec<NetworkInfo>, ContainerError> {
         let mut cmd = self.command();
-        cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
+        cmd.push_args(["network", "ls", "--format={{json .}}"]);
+
+        if cmd.command != "nerctl" {
+            cmd.push_arg("--no-trunc");
+        }
+
         let mut result = cmd.json_stream::<NetworkInfo>().await?;
         result.retain(|x| ["bridge", "host", "none"].contains(&x.name.as_str()));
         Ok(result)
