@@ -5,7 +5,9 @@ use tracing::debug;
 
 use super::{InnerRunner, RunnerError};
 use crate::cmd::Cmd;
+use crate::runner::ContainerError;
 use crate::version::Version;
+use crate::NetworkInfo;
 
 const MINIMAL_VERSION: Version = Version::new(1, 5);
 
@@ -23,6 +25,15 @@ pub struct Nerdctl {
 impl InnerRunner for Nerdctl {
     fn command(&self) -> Cmd<'static> {
         Cmd::new("nerdctl")
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_custom_networks(&self) -> Result<Vec<NetworkInfo>, ContainerError> {
+        let mut cmd = self.command();
+        cmd.push_args(["network", "ls", "--format={{json .}}"]);
+        let mut result = cmd.json_stream::<NetworkInfo>().await?;
+        result.retain(|x| ["bridge", "host", "none"].contains(&x.name.as_str()));
+        Ok(result)
     }
 }
 
