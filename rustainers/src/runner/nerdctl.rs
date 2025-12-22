@@ -30,7 +30,18 @@ impl InnerRunner for Nerdctl {
     #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
     async fn list_custom_networks(&self) -> Result<Vec<NetworkInfo>, ContainerError> {
         let mut cmd = self.command();
-        cmd.push_args(["network", "ls", "--format={{json .}}"]);
+
+        if self.version.major > 1 && self.version.minor > 1 {
+            cmd.push_args([
+                "network",
+                "ls",
+                // Remove empty IDs.
+                r#"--format='{{if ne .ID ""}}{{json .}}{{end}}'"#,
+            ]);
+        } else {
+            cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
+        }
+
         let mut result = cmd.json_stream::<NetworkInfo>().await?;
         result.retain(|x| ["bridge", "host", "none"].contains(&x.name.as_str()));
         Ok(result)

@@ -15,9 +15,9 @@ use crate::VersionError;
 /// we could implement [`Copy`]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Version {
-    major: u64,
-    minor: u64,
-    patch: Option<u64>,
+    pub(crate) major: u64,
+    pub(crate) minor: u64,
+    pub(crate) patch: Option<u64>,
 }
 
 impl Version {
