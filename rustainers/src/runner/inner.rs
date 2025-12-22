@@ -229,6 +229,7 @@ pub(crate) trait InnerRunner: Display + Debug + Send + Sync {
     async fn list_custom_networks(&self) -> Result<Vec<NetworkInfo>, ContainerError> {
         let mut cmd = self.command();
         cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
+
         let mut result = cmd.json_stream::<NetworkInfo>().await?;
         result.retain(|x| ["bridge", "host", "none"].contains(&x.name.as_str()));
         Ok(result)

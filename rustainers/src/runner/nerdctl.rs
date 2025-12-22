@@ -5,7 +5,9 @@ use tracing::debug;
 
 use super::{InnerRunner, RunnerError};
 use crate::cmd::Cmd;
+use crate::runner::ContainerError;
 use crate::version::Version;
+use crate::{ContainerId, IpamNetworkConfig, NetworkInfo};
 
 const MINIMAL_VERSION: Version = Version::new(1, 5);
 
@@ -20,9 +22,53 @@ pub struct Nerdctl {
     pub version: Version,
 }
 
+impl Nerdctl {
+    fn is_modern_version(&self) -> bool {
+        self.version.major > 1 && self.version.minor > 1
+    }
+}
+
 impl InnerRunner for Nerdctl {
     fn command(&self) -> Cmd<'static> {
         Cmd::new("nerdctl")
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_custom_networks(&self) -> Result<Vec<NetworkInfo>, ContainerError> {
+        let mut cmd = self.command();
+
+        if self.is_modern_version() {
+            cmd.push_args([
+                "network",
+                "ls",
+                // Remove empty IDs.
+                r#"--format={{if ne .ID ""}}{{json .}}{{end}}"#,
+            ]);
+        } else {
+            cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
+        }
+
+        let mut result = cmd.json_stream::<NetworkInfo>().await?;
+        result.retain(|x| ["bridge", "host", "none"].contains(&x.name.as_str()));
+        Ok(result)
+    }
+
+    #[tracing::instrument(level = "debug", skip(self), fields(runner = %self))]
+    async fn list_network_config(
+        &self,
+        network_id: ContainerId,
+    ) -> Result<Vec<IpamNetworkConfig>, ContainerError> {
+        let results = if self.is_modern_version() {
+            let mut cmd = self.command();
+            cmd.push_args(["network", "inspect", "--format={{json .IPAM.Config}}"]);
+            cmd.push_arg(network_id);
+            cmd.json::<Option<Vec<IpamNetworkConfig>>>().await?
+        } else {
+            self.inspect::<Option<Vec<IpamNetworkConfig>>>(network_id, ".IPAM.Config")
+                .await?
+        };
+
+        Ok(results.unwrap_or_default())
     }
 }
 
