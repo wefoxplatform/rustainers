@@ -36,7 +36,7 @@ impl InnerRunner for Nerdctl {
                 "network",
                 "ls",
                 // Remove empty IDs.
-                "{{if ne .ID \"\"}}{{json .}}{{end}}",
+                r#"--format={{if ne .ID ""}}{{json .}}{{end}}"#,
             ]);
         } else {
             cmd.push_args(["network", "ls", "--no-trunc", "--format={{json .}}"]);
