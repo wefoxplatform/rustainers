@@ -72,9 +72,13 @@ impl ExposedPort {
 
     pub(crate) async fn to_publish(&self) -> String {
         let port = self.host_port.lock().await;
-        port.map_or(self.container_port.to_string(), |host| {
-            format!("{host}:{}", self.container_port)
-        })
+        port.map_or(
+            format!(
+                "{container_port}:{container_port}",
+                container_port = self.container_port
+            ),
+            |host| format!("{host}:{}", self.container_port),
+        )
     }
 
     /// Bind the host port (if it's not already bound)
