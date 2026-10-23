@@ -16,7 +16,7 @@ pub enum RunnerError {
     CommandNotAvailable(String),
 
     /// Unsupported version
-    #[error("{command} version {current} expected to be ≥ that {minimal}")]
+    #[error("{command} version {current} expected to be ≥ {minimal}")]
     UnsupportedVersion {
         /// The command
         command: String,
@@ -154,7 +154,7 @@ pub enum RunnerError {
     },
 
     /// Fail to run compose
-    #[error("Fail run compose in {path:?} because {source}\nrunner: {runner}")]
+    #[error("Fail to run compose in {path:?} because {source}\nrunner: {runner}")]
     ComposeError {
         /// The runner
         runner: Runner,

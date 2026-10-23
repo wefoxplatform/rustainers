@@ -55,9 +55,9 @@ struct ComposeNginx {
 impl ComposeNginx {
 
     async fn new() -> Self {
-        // Create a temporary directory what will be removed when the containers stop
+        // Create a temporary directory that will be removed when the containers stop
         let temp_dir = TemporaryDirectory::with_files(
-            "componse-nginx", // a name prefix
+            "compose-nginx", // a name prefix
             [
             // One docker-compose.yaml file
             TemporaryFile::builder()

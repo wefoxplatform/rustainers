@@ -47,7 +47,7 @@ pub struct TemporaryFile {
 /// # use rustainers::compose::{TemporaryDirectory, TemporaryFile};
 /// # async fn build() {
 /// let temp_dir = TemporaryDirectory::with_files(
-///     "componse-nginx",
+///     "compose-nginx",
 ///     [TemporaryFile::builder()
 ///         .with_path("docker-compose.yaml")
 ///         .with_content(r#"..."#)
