@@ -40,7 +40,7 @@ struct ComposeNginx {
 impl ComposeNginx {
     async fn new() -> Self {
         let temp_dir = TemporaryDirectory::with_files(
-            "componse-nginx",
+            "compose-nginx",
             [TemporaryFile::builder()
                 .with_path("docker-compose.yaml")
                 .with_content(

@@ -63,13 +63,13 @@ impl WaitStrategy {
         Self::None
     }
 
-    /// Wait with image healt check
+    /// Wait with image health check
     #[must_use]
     pub fn health_check() -> Self {
         Self::HealthCheck
     }
 
-    /// Wait with image healt check
+    /// Wait with image health check
     #[must_use]
     pub fn custom_health_check(health_check: HealthCheck) -> Self {
         Self::CustomHealthCheck(health_check)
